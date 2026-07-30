@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Peta Jejak — KM Arwana 88</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;800;900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<style>
+  :root{
+    --bg:#131313;
+    --panel:#1b1b1b;
+    --text:#f4f4f2;
+    --muted:#9a9a97;
+    --hair: rgba(255,255,255,.08);
+
+    --c-emerald:#34d399;
+    --c-indigo:#818cf8;
+    --c-amber:#f59e0b;
+    --c-rose:#ec4899;
+    --c-sky:#38bdf8;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; height:100%; background:var(--bg); font-family:'Inter',sans-serif; color:var(--text); }
+
+  #map{ position:absolute; inset:0; }
+
+  .topbar{
+    position:absolute; top:0; left:0; right:0;
+    z-index:5;
+    padding: 22px 24px 60px;
+    background: linear-gradient(180deg, rgba(10,10,10,.92) 0%, rgba(10,10,10,.6) 55%, transparent 100%);
+    pointer-events:none;
+  }
+  .topbar .inner{ max-width:640px; }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+    color: var(--muted); margin:0 0 8px;
+  }
+  .title-row{ display:flex; align-items:center; gap:12px; margin-bottom:6px; }
+  .title-row .dot{ width:16px; height:16px; border-radius:4px; background:var(--c-emerald); flex-shrink:0; }
+  h1{ font-family:'Poppins',sans-serif; font-weight:800; font-size:22px; margin:0; line-height:1.25; }
+  .subtitle{ color:var(--muted); font-size:13px; margin: 6px 0 0 28px; max-width:480px; line-height:1.5; }
+
+  .legend{
+    position:absolute; bottom: 18px; left:18px; z-index:5;
+    background: var(--panel);
+    border: 1px solid var(--hair);
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-family:'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    max-width: 230px;
+    line-height: 1.9;
+    box-shadow: 0 20px 40px rgba(0,0,0,.4);
+  }
+  .legend b{ color:var(--text); font-family:'Inter',sans-serif; font-weight:600; font-size:12px; display:block; margin-bottom:6px; }
+  .legend .row{ display:flex; align-items:center; gap:8px; }
+  .legend .sw{ width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+
+  .disclaimer{
+    position:absolute; bottom:18px; right:18px; z-index:5;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px; color:#6b6b68;
+    background: rgba(20,20,20,.85);
+    border: 1px solid var(--hair);
+    padding: 6px 10px;
+    border-radius: 999px;
+  }
+
+  /* custom markers */
+  .pin{
+    width: 26px; height:26px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    border: 2px solid rgba(0,0,0,.35);
+    box-shadow: 0 4px 10px rgba(0,0,0,.5);
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .pin span{
+    transform: rotate(45deg);
+    font-family:'JetBrains Mono', monospace;
+    font-weight:700;
+    font-size:10px;
+    color:#0f0f0f;
+  }
+
+  /* popup theming */
+  .maplibregl-popup-content{
+    background: var(--panel) !important;
+    color: var(--text) !important;
+    border-radius: 14px !important;
+    padding: 18px 18px 16px !important;
+    box-shadow: 0 30px 60px rgba(0,0,0,.55) !important;
+    border: 1px solid var(--hair);
+    max-width: 300px;
+  }
+  .maplibregl-popup-tip{ border-top-color: var(--panel) !important; border-bottom-color: var(--panel) !important; }
+  .maplibregl-popup-close-button{ color: var(--muted) !important; font-size: 18px !important; padding: 4px 8px !important; }
+
+  .pop-badge{
+    display:inline-block;
+    font-family:'JetBrains Mono', monospace;
+    font-weight:700; font-size:10.5px;
+    color:#0f0f0f;
+    padding: 3px 9px;
+    border-radius: 999px;
+    margin-bottom: 10px;
+  }
+  .pop-title{ font-family:'Poppins',sans-serif; font-weight:700; font-size:15.5px; margin:0 0 8px; line-height:1.35; }
+  .pop-desc{ font-size:12.5px; color:#d6d6d3; line-height:1.55; margin:0 0 6px; }
+  .pop-signal{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.05em; text-transform:uppercase;
+    padding: 3px 8px 3px 6px; border-radius:999px;
+    background: rgba(255,255,255,.05); border:1px solid var(--hair); color:var(--muted);
+    margin-top:8px;
+  }
+  .pop-signal .led{ width:6px; height:6px; border-radius:50%; }
+  .pop-signal.on .led{ background:#4ade80; box-shadow:0 0 6px #4ade80; }
+  .pop-signal.off .led{ background:#f43f5e; box-shadow:0 0 6px #f43f5e; }
+  .pop-signal.na .led{ background:#6b6b68; }
+
+  @media (max-width:560px){
+    .legend{ max-width: 170px; font-size:10px; padding:10px 12px; }
+    h1{ font-size:18px; }
+    .subtitle{ margin-left:0; font-size:12px; }
+    .topbar{ padding: 16px 16px 50px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<div class="topbar">
+  <div class="inner">
+    <p class="eyebrow">Kasus Fiktif · Peta Jejak Kapal</p>
+    <div class="title-row">
+      <span class="dot"></span>
+      <h1>Jejak KM Arwana 88 — Laut Arafura</h1>
+    </div>
+    <p class="subtitle">Klik titik pada peta untuk melihat detail tiap peristiwa. Seluruh koordinat bersifat fiktif, disusun di sekitar Kepulauan Aru.</p>
+  </div>
+</div>
+
+<div class="legend">
+  <b>Legenda</b>
+  <div class="row"><span class="sw" style="background:#34d399"></span> Awal / operasional</div>
+  <div class="row"><span class="sw" style="background:#818cf8"></span> Sistem &amp; pelaporan</div>
+  <div class="row"><span class="sw" style="background:#f59e0b"></span> Pelanggaran lapangan</div>
+  <div class="row"><span class="sw" style="background:#ec4899"></span> Keterkaitan politik</div>
+  <div class="row"><span class="sw" style="background:#38bdf8"></span> Penindakan &amp; proses hukum</div>
+</div>
+
+<div class="disclaimer">⚠ kasus &amp; koordinat fiktif</div>
+
+<script>
+  const events = [
+    {
+      date: "18 Des 2026", title: "Izin Operasi Kapal Berakhir",
+      desc: "Izin resmi habis; kapal tak kembali ke pelabuhan untuk pemeriksaan ulang. Dokumen izin baru yang dikirim ternyata tidak terdaftar.",
+      color: "#34d399", signal: "na", signalLabel: "Pra-keberangkatan",
+      lng: 132.75, lat: -5.61
+    },
+    {
+      date: "3 Jan 2027", title: "Kapal Meninggalkan Pelabuhan",
+      desc: "Berangkat 02.15 WIT dengan 27 awak. Jaring pukat besar terlihat disembunyikan di bawah terpal.",
+      color: "#818cf8", signal: "on", signalLabel: "VMS aktif",
+      lng: 134.15, lat: -6.00
+    },
+    {
+      date: "5 Jan 2027", title: "Sistem Pelacakan (VMS) Dimatikan",
+      desc: "Sinyal hilang 45 mil laut dari Aru. Teknisi mengaku perangkat dimatikan atas perintah nakhoda.",
+      color: "#f59e0b", signal: "off", signalLabel: "VMS mati",
+      lng: 134.90, lat: -6.30
+    },
+    {
+      date: "7–12 Jan 2027", title: "Penangkapan di Zona Terlarang",
+      desc: "Pukat diturunkan tiap malam di zona perlindungan ikan muda. Lebih dari 110 ton campuran ikan tertangkap.",
+      color: "#ec4899", signal: "off", signalLabel: "VMS mati",
+      lng: 135.30, lat: -6.60
+    },
+    {
+      date: "10 Jan 2027", title: "Awak Kapal Mengalami Kekerasan",
+      desc: "Protes jam kerja 18 jam/hari; seorang awak yang terluka ditolak permintaan pulangnya dan dikurung.",
+      color: "#38bdf8", signal: "off", signalLabel: "VMS mati",
+      lng: 135.35, lat: -6.65
+    },
+    {
+      date: "13 Jan 2027", title: "Pemindahan Ikan di Tengah Laut",
+      desc: "Bertemu kapal asing MV Northern Star di luar jalur pelayaran umum; ±80 ton dipindahkan (transshipment) tanpa izin.",
+      color: "#34d399", signal: "off", signalLabel: "VMS mati",
+      lng: 136.00, lat: -7.00
+    },
+    {
+      date: "14 Jan 2027", title: "Sistem Pelacakan Kembali Aktif",
+      desc: "Posisi 120 mil laut dari titik sinyal hilang. Laporan resmi hanya 24 ton cumi, jauh di bawah rekaman aktivitas awak.",
+      color: "#818cf8", signal: "on", signalLabel: "VMS aktif",
+      lng: 136.50, lat: -7.30
+    },
+    {
+      date: "18 Jan 2027", title: "Informasi Bocor kepada Jurnalis",
+      desc: "Video dan koordinat pertemuan kapal dikirim ke media Suara Bahari, mencakup bukti VMS sengaja dimatikan.",
+      color: "#f59e0b", signal: "on", signalLabel: "VMS aktif",
+      lng: 134.60, lat: -6.10
+    },
+    {
+      date: "20 Jan 2027", title: "Hubungan dengan Politisi Terungkap",
+      desc: "Pemegang saham terbesar perusahaan adalah ipar politisi Darma Wijanarko; struktur kepemilikan berlapis.",
+      color: "#ec4899", signal: "on", signalLabel: "VMS aktif",
+      lng: 134.30, lat: -5.90
+    },
+    {
+      date: "22 Jan 2027", title: "Operasi Penangkapan oleh Petugas",
+      desc: "Kapal patroli menemukan &amp; mengejar KM Arwana 88, 70 mil laut barat Aru. Ditemukan pukat terlarang &amp; ruang tersembunyi.",
+      color: "#38bdf8", signal: "on", signalLabel: "Kapal ditahan",
+      lng: 133.50, lat: -6.50
+    },
+    {
+      date: "23 Jan 2027", title: "Upaya Penghapusan Bukti Digital",
+      desc: "Manajer perusahaan minta riwayat komunikasi dihapus; pesan berhasil dipulihkan dari telepon satelit kapal.",
+      color: "#34d399", signal: "na", signalLabel: "Pasca-penahanan",
+      lng: 133.55, lat: -6.52
+    },
+    {
+      date: "26 Jan 2027", title: "Tekanan Politik Mulai Muncul",
+      desc: "Pejabat pengawasan perikanan didesak mengubah status kasus dari pidana menjadi administratif.",
+      color: "#818cf8", signal: "na", signalLabel: "Pasca-penahanan",
+      lng: 134.20, lat: -5.95
+    },
+    {
+      date: "28 Jan 2027", title: "Media Menerbitkan Investigasi",
+      desc: "Suara Bahari terbitkan laporan investigasi; viral dengan tagar #Arwana88 dan #LautBukanMilikElite.",
+      color: "#f59e0b", signal: "na", signalLabel: "Sorotan publik",
+      lng: 134.25, lat: -6.05
+    },
+    {
+      date: "30 Jan 2027", title: "Darma Wijanarko Memberikan Pernyataan",
+      desc: "Membantah kepemilikan kapal; jurnalis menemukan foto lama dirinya di acara peresmian kapal.",
+      color: "#ec4899", signal: "na", signalLabel: "Sorotan publik",
+      lng: 134.35, lat: -5.85
+    },
+    {
+      date: "Feb 2027", title: "Penyelidikan Keuangan Diperluas",
+      desc: "Ditemukan aliran dana ke yayasan politik; MV Northern Star menghilang lewat perusahaan luar negeri.",
+      color: "#38bdf8", signal: "na", signalLabel: "Investigasi lanjutan",
+      lng: 134.70, lat: -6.20
+    },
+    {
+      date: "Mar 2027", title: "Kesaksian Awak Kapal Menguatkan Kasus",
+      desc: "14 awak bersaksi pola serupa terjadi minimal 5 kali dalam setahun terakhir; mengaku diancam soal gaji.",
+      color: "#34d399", signal: "na", signalLabel: "Investigasi lanjutan",
+      lng: 134.50, lat: -6.15
+    },
+    {
+      date: "Apr 2027", title: "Lima Tersangka Ditetapkan",
+      desc: "Nakhoda, manajer operasional, direktur perusahaan, mandor kapal, dan pejabat pelabuhan jadi tersangka. Darma masih berstatus saksi.",
+      color: "#818cf8", signal: "na", signalLabel: "Proses hukum",
+      lng: 134.40, lat: -6.00
+    }
+  ];
+
+  const map = new maplibregl.Map({
+    container: 'map',
+    style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+    center: [134.6, -6.3],
+    zoom: 6.6,
+    pitch: 0
+  });
+
+  map.addControl(new maplibregl.NavigationControl({ showCompass:false }), 'top-right');
+
+  map.on('load', () => {
+    events.forEach((ev, i) => {
+      const el = document.createElement('div');
+      el.className = 'pin';
+      el.style.background = ev.color;
+      el.innerHTML = `<span>${i+1}</span>`;
+
+      const signalClass = ev.signal === 'on' ? 'on' : (ev.signal === 'off' ? 'off' : 'na');
+
+      const popupHTML = `
+        <span class="pop-badge" style="background:${ev.color}">${ev.date}</span>
+        <p class="pop-title">${ev.title}</p>
+        <p class="pop-desc">${ev.desc}</p>
+        <span class="pop-signal ${signalClass}"><span class="led"></span>${ev.signalLabel}</span>
+      `;
+
+      const popup = new maplibregl.Popup({ offset: 20, closeButton: true, maxWidth: '300px' })
+        .setHTML(popupHTML);
+
+      new maplibregl.Marker({ element: el, anchor: 'bottom' })
+        .setLngLat([ev.lng, ev.lat])
+        .setPopup(popup)
+        .addTo(map);
+    });
+  });
+</script>
+
+</body>
+</html>
