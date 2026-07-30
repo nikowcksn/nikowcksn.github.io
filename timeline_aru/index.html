@@ -1,1 +1,609 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kronologi Kasus — KM Arwana 88</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;800;900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #131313;
+    --card-bg: #1b1b1b;
+    --card-bg-2: #1f1f1f;
+    --text: #f4f4f2;
+    --muted: #9a9a97;
+    --hair: rgba(255,255,255,.08);
 
+    --c-emerald: #34d399;
+    --c-indigo: #818cf8;
+    --c-amber: #f59e0b;
+    --c-rose: #ec4899;
+    --c-sky: #38bdf8;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+
+  body{
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height:100vh;
+    padding: 48px 16px 96px;
+    position: relative;
+    overflow-x:hidden;
+  }
+
+  /* ambient colorful blobs, kept quiet & mostly hidden behind the card */
+  body::before, body::after{
+    content:"";
+    position:fixed;
+    width: 480px; height:480px;
+    border-radius:50%;
+    filter: blur(90px);
+    opacity:.28;
+    z-index:0;
+  }
+  body::before{
+    top:-160px; left:-160px;
+    background: radial-gradient(circle at 30% 30%, var(--c-emerald), transparent 70%);
+  }
+  body::after{
+    bottom:-200px; right:-180px;
+    background: radial-gradient(circle at 70% 70%, var(--c-rose), transparent 70%);
+  }
+
+  .sheet{
+    position:relative;
+    z-index:1;
+    max-width: 760px;
+    margin: 0 auto;
+    background: var(--card-bg);
+    border-radius: 28px;
+    padding: 44px 40px 36px;
+    box-shadow: 0 40px 80px rgba(0,0,0,.5);
+  }
+
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 10px;
+  }
+
+  .title-row{
+    display:flex;
+    align-items:center;
+    gap: 14px;
+    margin-bottom: 6px;
+  }
+  .title-row .dot{
+    width: 20px; height:20px;
+    border-radius: 5px;
+    background: var(--c-emerald);
+    flex-shrink:0;
+  }
+  h1{
+    font-family:'Poppins', sans-serif;
+    font-weight: 800;
+    font-size: 30px;
+    margin: 0;
+    line-height: 1.15;
+  }
+  .subtitle{
+    color: var(--muted);
+    font-size: 14px;
+    margin: 0 0 8px 34px;
+    max-width: 520px;
+    line-height:1.5;
+  }
+  .disclaimer{
+    margin: 0 0 34px 34px;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-family:'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #6b6b68;
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--hair);
+    padding: 5px 10px;
+    border-radius: 999px;
+  }
+
+  .entry{
+    display:grid;
+    grid-template-columns: 92px 3px 1fr;
+    column-gap: 20px;
+    padding: 26px 0;
+    border-bottom: 1px solid var(--hair);
+  }
+  .entry:last-child{ border-bottom:none; padding-bottom:0; }
+  .entry:first-child{ padding-top:0; }
+
+  .datecol{ position:relative; }
+  .badge{
+    display:inline-block;
+    font-family:'JetBrains Mono', monospace;
+    font-weight:700;
+    font-size: 11px;
+    letter-spacing:.03em;
+    color:#0f0f0f;
+    padding: 3px 9px;
+    border-radius: 999px;
+    margin-bottom: 8px;
+  }
+  .daynum{
+    font-family:'Poppins', sans-serif;
+    font-weight: 900;
+    font-size: 40px;
+    line-height: 1;
+    color: var(--text);
+  }
+  .monyear{
+    font-family:'Inter', sans-serif;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .rule{ background: var(--hair); border-radius: 2px; }
+
+  .content h3{
+    font-family:'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+    margin: 2px 0 10px;
+    line-height:1.35;
+  }
+
+  .meta{
+    display:flex;
+    align-items:flex-start;
+    gap: 8px;
+    font-size: 13.5px;
+    color: #d6d6d3;
+    line-height:1.55;
+    margin-bottom: 6px;
+  }
+  .meta:last-child{ margin-bottom:0; }
+  .meta svg{ flex-shrink:0; margin-top: 2px; width:15px; height:15px; }
+
+  /* signal indicator — signature motif tied to the case's VMS thread */
+  .signal{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-family:'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing:.05em;
+    text-transform: uppercase;
+    padding: 3px 8px 3px 6px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--hair);
+    color: var(--muted);
+    margin-top: 10px;
+  }
+  .signal .led{
+    width:7px; height:7px;
+    border-radius:50%;
+  }
+  .signal.on .led{ background: #4ade80; box-shadow:0 0 6px #4ade80; }
+  .signal.off .led{ background: #f43f5e; box-shadow:0 0 6px #f43f5e; }
+  .signal.na .led{ background: #6b6b68; }
+
+  footer{
+    max-width:760px;
+    margin: 22px auto 0;
+    text-align:center;
+    font-family:'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #55554f;
+  }
+
+  @media (max-width: 560px){
+    .sheet{ padding: 32px 20px 28px; border-radius: 20px; }
+    .entry{ grid-template-columns: 66px 3px 1fr; column-gap: 14px; }
+    .daynum{ font-size: 30px; }
+    h1{ font-size: 23px; }
+    .subtitle, .disclaimer{ margin-left: 0; }
+    .title-row{ gap:10px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="sheet">
+    <p class="eyebrow">Kasus Fiktif · Perikanan Ilegal</p>
+    <div class="title-row">
+      <span class="dot"></span>
+      <h1>Kronologi Operasi Senyap<br>KM Arwana 88</h1>
+    </div>
+    <p class="subtitle">Dugaan penangkapan ikan ilegal, manipulasi sistem pelacakan kapal, dan dugaan keterkaitan dengan politisi nasional — Laut Arafura, Des 2026–Apr 2027.</p>
+    <span class="disclaimer">⚠ seluruh nama, kapal &amp; peristiwa bersifat fiktif</span>
+
+    <!-- 1 -->
+    <div class="entry">
+      <div class="datecol">
+        <span class="badge" style="background:var(--c-emerald)">DES</span>
+        <div class="daynum">18</div>
+        <div class="monyear">2026</div>
+      </div>
+      <div class="rule"></div>
+      <div class="content">
+        <h3>Izin Operasi Kapal Berakhir</h3>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path d="M12 2 4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6l-8-4Z"/></svg>
+          Izin resmi habis, kapal tak kembali ke Pelabuhan Tual untuk pemeriksaan ulang.
+        </div>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#9a9a97" stroke-width="2"><path d="M12 22s7-6.2 7-12A7 7 0 0 0 5 10c0 5.8 7 12 7 12Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          Dokumen izin baru dikirim via pesan; nomornya tidak terdaftar di basis data pemerintah.
+        </div>
+        <span class="signal na"><span class="led"></span>Pra-keberangkatan</span>
+      </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="entry">
+      <div class="datecol">
+        <span class="badge" style="background:var(--c-indigo)">JAN</span>
+        <div class="daynum">03</div>
+        <div class="monyear">2027</div>
+      </div>
+      <div class="rule"></div>
+      <div class="content">
+        <h3>Kapal Meninggalkan Pelabuhan</h3>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2"><path d="M12 22s7-6.2 7-12A7 7 0 0 0 5 10c0 5.8 7 12 7 12Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          Berangkat 02.15 WIT dari Kepulauan Aru dengan 27 awak, membawa kapasitas simpan 180 ton.
+        </div>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#9a9a97" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+          Pekerja pelabuhan melihat jaring pukat besar yang disembunyikan di bawah terpal.
+        </div>
+        <span class="signal on"><span class="led"></span>VMS aktif</span>
+      </div>
+    </div>
+
+    <!-- 3 -->
+    <div class="entry">
+      <div class="datecol">
+        <span class="badge" style="background:var(--c-amber)">JAN</span>
+        <div class="daynum">05</div>
+        <div class="monyear">2027</div>
+      </div>
+      <div class="rule"></div>
+      <div class="content">
+        <h3>Sistem Pelacakan Kapal Dimatikan</h3>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M12 2 4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6l-8-4Z"/></svg>
+          Sinyal VMS hilang 45 mil laut dari Aru; perusahaan menyebut kerusakan antena.
+        </div>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#9a9a97" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+          Teknisi kapal mengaku alat dimatikan atas perintah nakhoda; kapal hilang jejak 9 hari.
+        </div>
+        <span class="signal off"><span class="led"></span>VMS mati</span>
+      </div>
+    </div>
+
+    <!-- 4 -->
+    <div class="entry">
+      <div class="datecol">
+        <span class="badge" style="background:var(--c-rose)">JAN</span>
+        <div class="daynum">7–12</div>
+        <div class="monyear">2027</div>
+      </div>
+      <div class="rule"></div>
+      <div class="content">
+        <h3>Penangkapan Ikan di Zona Terlarang</h3>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="2"><path d="M12 2 4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6l-8-4Z"/></svg>
+          Pukat diturunkan tiap malam di zona perlindungan ikan muda; direkam diam-diam oleh awak "Rian".
+        </div>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#9a9a97" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+          Lebih dari 110 ton campuran ikan tertangkap; hasil bernilai rendah dibuang dalam kondisi mati.
+        </div>
+        <span class="signal off"><span class="led"></span>VMS mati</span>
+      </div>
+    </div>
+
+    <!-- 5 -->
+    <div class="entry">
+      <div class="datecol">
+        <span class="badge" style="background:var(--c-sky)">JAN</span>
+        <div class="daynum">10</div>
+        <div class="monyear">2027</div>
+      </div>
+      <div class="rule"></div>
+      <div class="content">
+        <h3>Awak Kapal Mengalami Kekerasan</h3>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M12 22s7-6.2 7-12A7 7 0 0 0 5 10c0 5.8 7 12 7 12Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          Protes jam kerja 18 jam/hari; awak "Fajar" ditolak permintaan pulang meski terluka.
+        </div>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#9a9a97" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+          Telepon genggam awak disita agar tak menghubungi keluarga; satu unit disembunyikan Rian.
+        </div>
+        <span class="signal off"><span class="led"></span>VMS mati</span>
+      </div>
+    </div>
+
+    <!-- 6 -->
+    <div class="entry">
+      <div class="datecol">
+        <span class="badge" style="background:var(--c-emerald)">JAN</span>
+        <div class="daynum">13</div>
+        <div class="monyear">2027</div>
+      </div>
+      <div class="rule"></div>
+      <div class="content">
+        <h3>Pemindahan Ikan di Tengah Laut</h3>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path d="M12 2 4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6l-8-4Z"/></svg>
+          Bertemu kapal asing MV Northern Star di luar jalur pelayaran umum; ±80 ton dipindahkan (transshipment).
+        </div>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#9a9a97" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+          Tidak ada izin resmi untuk transshipment; transaksi ditaksir senilai ±Rp14,8 miliar.
+        </div>
+        <span class="signal off"><span class="led"></span>VMS mati</span>
+      </div>
+    </div>
+
+    <!-- 7 -->
+    <div class="entry">
+      <div class="datecol">
+        <span class="badge" style="background:var(--c-indigo)">JAN</span>
+        <div class="daynum">14</div>
+        <div class="monyear">2027</div>
+      </div>
+      <div class="rule"></div>
+      <div class="content">
+        <h3>Sistem Pelacakan Kembali Aktif</h3>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2"><path d="M12 2 4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6l-8-4Z"/></svg>
+          Posisi 120 mil laut dari titik sinyal hilang; perusahaan klaim VMS "selesai diperbaiki".
+        </div>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#9a9a97" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+          Laporan resmi hanya 24 ton cumi — jauh di bawah kapasitas dan rekaman aktivitas awak.
+        </div>
+        <span class="signal on"><span class="led"></span>VMS aktif</span>
+      </div>
+    </div>
+
+    <!-- 8 -->
+    <div class="entry">
+      <div class="datecol">
+        <span class="badge" style="background:var(--c-amber)">JAN</span>
+        <div class="daynum">18</div>
+        <div class="monyear">2027</div>
+      </div>
+      <div class="rule"></div>
+      <div class="content">
+        <h3>Informasi Bocor kepada Jurnalis</h3>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M12 2 4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6l-8-4Z"/></svg>
+          Rian mengirim video &amp; koordinat pertemuan kapal ke kakaknya, diteruskan ke media Suara Bahari.
+        </div>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#9a9a97" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+          Materi mencakup rekaman pukat terlarang, foto awak terluka, dan pesan perintah mematikan VMS.
+        </div>
+        <span class="signal on"><span class="led"></span>VMS aktif</span>
+      </div>
+    </div>
+
+    <!-- 9 -->
+    <div class="entry">
+      <div class="datecol">
+        <span class="badge" style="background:var(--c-rose)">JAN</span>
+        <div class="daynum">20</div>
+        <div class="monyear">2027</div>
+      </div>
+      <div class="rule"></div>
+      <div class="content">
+        <h3>Hubungan dengan Politisi Terungkap</h3>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="2"><path d="M12 22s7-6.2 7-12A7 7 0 0 0 5 10c0 5.8 7 12 7 12Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          Pemegang saham terbesar PT Samudra Pangan Lestari adalah ipar politisi Darma Wijanarko.
+        </div>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#9a9a97" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+          Kantor perusahaan satu gedung dengan tim pemenangan Darma; struktur kepemilikan berlapis.
+        </div>
+        <span class="signal on"><span class="led"></span>VMS aktif</span>
+      </div>
+    </div>
+
+    <!-- 10 -->
+    <div class="entry">
+      <div class="datecol">
+        <span class="badge" style="background:var(--c-sky)">JAN</span>
+        <div class="daynum">22</div>
+        <div class="monyear">2027</div>
+      </div>
+      <div class="rule"></div>
+      <div class="content">
+        <h3>Operasi Penangkapan oleh Petugas</h3>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M12 22s7-6.2 7-12A7 7 0 0 0 5 10c0 5.8 7 12 7 12Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          Kapal patroli menemukan &amp; mengejar KM Arwana 88, 70 mil laut barat Kepulauan Aru.
+        </div>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#9a9a97" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+          Ditemukan 31 ton ikan tak tercatat, pukat terlarang, ruang tersembunyi, &amp; dua unit VMS (satu dimodifikasi).
+        </div>
+        <span class="signal on"><span class="led"></span>Kapal ditahan</span>
+      </div>
+    </div>
+
+    <!-- 11 -->
+    <div class="entry">
+      <div class="datecol">
+        <span class="badge" style="background:var(--c-emerald)">JAN</span>
+        <div class="daynum">23</div>
+        <div class="monyear">2027</div>
+      </div>
+      <div class="rule"></div>
+      <div class="content">
+        <h3>Upaya Penghapusan Bukti Digital</h3>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path d="M12 2 4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6l-8-4Z"/></svg>
+          Manajer perusahaan minta riwayat komunikasi dihapus; pesan berhasil dipulihkan dari telepon satelit.
+        </div>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#9a9a97" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+          Ditemukan komunikasi manajer operasional dengan staf politik Darma Wijanarko.
+        </div>
+        <span class="signal na"><span class="led"></span>Pasca-penahanan</span>
+      </div>
+    </div>
+
+    <!-- 12 -->
+    <div class="entry">
+      <div class="datecol">
+        <span class="badge" style="background:var(--c-indigo)">JAN</span>
+        <div class="daynum">26</div>
+        <div class="monyear">2027</div>
+      </div>
+      <div class="rule"></div>
+      <div class="content">
+        <h3>Tekanan Politik Mulai Muncul</h3>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2"><path d="M12 22s7-6.2 7-12A7 7 0 0 0 5 10c0 5.8 7 12 7 12Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          Pejabat pengawasan perikanan didesak anggota parlemen mengubah status kasus jadi administratif.
+        </div>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#9a9a97" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+          Perusahaan menyebut kejadian hanya "kesalahan teknis" dan membantah alat tangkap terlarang.
+        </div>
+        <span class="signal na"><span class="led"></span>Pasca-penahanan</span>
+      </div>
+    </div>
+
+    <!-- 13 -->
+    <div class="entry">
+      <div class="datecol">
+        <span class="badge" style="background:var(--c-amber)">JAN</span>
+        <div class="daynum">28</div>
+        <div class="monyear">2027</div>
+      </div>
+      <div class="rule"></div>
+      <div class="content">
+        <h3>Media Menerbitkan Investigasi</h3>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M12 2 4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6l-8-4Z"/></svg>
+          Suara Bahari terbitkan "Sembilan Hari Tanpa Sinyal"; dibaca &gt;1 juta kali dalam 24 jam.
+        </div>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#9a9a97" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+          Tagar #Arwana88 &amp; #LautBukanMilikElite viral; organisasi nelayan tuntut transparansi pemilik manfaat.
+        </div>
+        <span class="signal na"><span class="led"></span>Sorotan publik</span>
+      </div>
+    </div>
+
+    <!-- 14 -->
+    <div class="entry">
+      <div class="datecol">
+        <span class="badge" style="background:var(--c-rose)">JAN</span>
+        <div class="daynum">30</div>
+        <div class="monyear">2027</div>
+      </div>
+      <div class="rule"></div>
+      <div class="content">
+        <h3>Darma Wijanarko Memberikan Pernyataan</h3>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="2"><path d="M12 22s7-6.2 7-12A7 7 0 0 0 5 10c0 5.8 7 12 7 12Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          Membantah memiliki KM Arwana 88 dan mengaku tak tahu aktivitas operasional kapal.
+        </div>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#9a9a97" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+          Jurnalis temukan foto lama Darma di acara peresmian kapal, menyebutnya "usaha keluarga".
+        </div>
+        <span class="signal na"><span class="led"></span>Sorotan publik</span>
+      </div>
+    </div>
+
+    <!-- 15 -->
+    <div class="entry">
+      <div class="datecol">
+        <span class="badge" style="background:var(--c-sky)">FEB</span>
+        <div class="daynum">—</div>
+        <div class="monyear">2027</div>
+      </div>
+      <div class="rule"></div>
+      <div class="content">
+        <h3>Penyelidikan Keuangan Diperluas</h3>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><path d="M12 2 4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6l-8-4Z"/></svg>
+          Ditemukan pembayaran ke konsultan tanpa aktivitas bisnis jelas, sebagian mengalir ke yayasan politik.
+        </div>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#9a9a97" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+          MV Northern Star tinggalkan Asia Tenggara; identitas pemiliknya disamarkan lewat perusahaan luar negeri.
+        </div>
+        <span class="signal na"><span class="led"></span>Investigasi lanjutan</span>
+      </div>
+    </div>
+
+    <!-- 16 -->
+    <div class="entry">
+      <div class="datecol">
+        <span class="badge" style="background:var(--c-emerald)">MAR</span>
+        <div class="daynum">—</div>
+        <div class="monyear">2027</div>
+      </div>
+      <div class="rule"></div>
+      <div class="content">
+        <h3>Kesaksian Awak Kapal Menguatkan Kasus</h3>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path d="M12 22s7-6.2 7-12A7 7 0 0 0 5 10c0 5.8 7 12 7 12Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          14 awak bersaksi: pola sama terjadi minimal 5 kali dalam setahun terakhir.
+        </div>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#9a9a97" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+          Awak mengaku diancam tak digaji jika membicarakan aktivitas kapal.
+        </div>
+        <span class="signal na"><span class="led"></span>Investigasi lanjutan</span>
+      </div>
+    </div>
+
+    <!-- 17 -->
+    <div class="entry">
+      <div class="datecol">
+        <span class="badge" style="background:var(--c-indigo)">APR</span>
+        <div class="daynum">—</div>
+        <div class="monyear">2027</div>
+      </div>
+      <div class="rule"></div>
+      <div class="content">
+        <h3>Lima Tersangka Ditetapkan</h3>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2"><path d="M12 2 4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6l-8-4Z"/></svg>
+          Nakhoda, manajer operasional, direktur perusahaan, mandor kapal, dan pejabat pelabuhan.
+        </div>
+        <div class="meta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#9a9a97" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+          Darma Wijanarko masih berstatus saksi — kritik publik menilai penyelidikan belum tuntas.
+        </div>
+        <span class="signal na"><span class="led"></span>Proses hukum</span>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>KASUS FIKTIF — DIBUAT UNTUK KEPERLUAN ILUSTRASI/EDITORIAL</footer>
+
+</body>
+</html>
