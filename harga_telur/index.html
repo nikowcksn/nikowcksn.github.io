@@ -1,1 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Egg Prices &amp; Minimum Wages — 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FBF5E9;
+    --cream-2:#F3EAD6;
+    --ink:#2A2318;
+    --ink-soft:#5B5142;
+    --yolk:#F2A900;
+    --yolk-deep:#D98C00;
+    --line:#E4D8BE;
 
+    --c-europe:#4C6EF5;
+    --c-asia:#E8543A;
+    --c-africa:#0FA787;
+    --c-namerica:#9B5DE5;
+    --c-samerica:#D9A400;
+    --c-oceania:#1AA6B7;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Space Grotesk', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding:28px 20px 60px;
+  }
+
+  .wrap{max-width:980px;margin:0 auto;}
+
+  /* ---------- Header ---------- */
+  header{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:24px;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:18px;
+    margin-bottom:22px;
+    flex-wrap:wrap;
+  }
+  .title-block{flex:1; min-width:280px;}
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--yolk-deep);
+    font-weight:500;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:6px;
+  }
+  .eyebrow .egg-dot{
+    width:10px;height:12px;border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;
+    background:var(--yolk); display:inline-block;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:clamp(28px, 4vw, 42px);
+    line-height:1.05;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  h1 em{
+    font-style:italic;
+    color:var(--yolk-deep);
+  }
+  .subtitle{
+    font-size:13.5px;
+    color:var(--ink-soft);
+    max-width:520px;
+    margin-top:8px;
+    line-height:1.45;
+  }
+  .stat-cluster{
+    display:flex;
+    gap:22px;
+    font-family:'JetBrains Mono', monospace;
+  }
+  .stat{text-align:right;}
+  .stat .num{font-size:22px; font-weight:500; color:var(--ink);}
+  .stat .lbl{font-size:10px; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-soft);}
+
+  /* ---------- Controls ---------- */
+  .controls{
+    display:flex;
+    flex-wrap:wrap;
+    gap:14px;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:18px;
+    padding:14px 16px;
+    background:var(--cream-2);
+    border:1px solid var(--line);
+    border-radius:10px;
+  }
+  .sort-group{display:flex; gap:6px; flex-wrap:wrap; align-items:center;}
+  .sort-group .lead{
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--ink-soft);
+    margin-right:4px;
+  }
+  button.sort-btn{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:13px;
+    font-weight:500;
+    padding:7px 14px;
+    border-radius:20px;
+    border:1.5px solid var(--ink);
+    background:transparent;
+    color:var(--ink);
+    cursor:pointer;
+    transition:background .15s, color .15s, transform .1s;
+  }
+  button.sort-btn:hover{transform:translateY(-1px);}
+  button.sort-btn.active{
+    background:var(--ink);
+    color:var(--cream);
+  }
+  .dir-toggle{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    border:1.5px solid var(--ink-soft);
+    background:transparent;
+    color:var(--ink-soft);
+    border-radius:20px;
+    padding:6px 10px;
+    cursor:pointer;
+  }
+
+  .legend{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .legend-chip{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:12px;
+    font-weight:500;
+    padding:5px 10px 5px 6px;
+    border-radius:16px;
+    border:1px solid var(--line);
+    background:#fff;
+    cursor:pointer;
+    user-select:none;
+    transition:opacity .15s, transform .1s;
+  }
+  .legend-chip:hover{transform:translateY(-1px);}
+  .legend-chip.off{opacity:0.32;}
+  .legend-swatch{width:10px;height:10px;border-radius:50%; flex-shrink:0;}
+
+  /* ---------- Chart ---------- */
+  #chart-scroll{
+    max-height:640px;
+    overflow-y:auto;
+    padding-right:6px;
+    border-top:1px solid var(--line);
+  }
+  #chart-scroll::-webkit-scrollbar{width:8px;}
+  #chart-scroll::-webkit-scrollbar-track{background:transparent;}
+  #chart-scroll::-webkit-scrollbar-thumb{background:var(--line); border-radius:8px;}
+
+  .row{
+    display:grid;
+    grid-template-columns:34px 118px 1fr 92px;
+    align-items:center;
+    gap:10px;
+    padding:5px 4px;
+    border-bottom:1px solid var(--line);
+    transition:opacity .25s, max-height .25s;
+  }
+  .row.hidden-row{
+    display:none;
+  }
+  .rank{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    text-align:right;
+  }
+  .country{
+    font-size:13px;
+    font-weight:500;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    cursor:default;
+  }
+  .bar-track{
+    position:relative;
+    height:20px;
+    background:rgba(0,0,0,0.035);
+    border-radius:4px;
+    overflow:hidden;
+  }
+  .bar-fill{
+    position:absolute;
+    left:0; top:0; bottom:0;
+    border-radius:4px;
+    transition:width .55s cubic-bezier(.22,.9,.3,1), background-color .3s;
+  }
+  .value{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    text-align:right;
+    color:var(--ink);
+    white-space:nowrap;
+  }
+
+  /* ---------- Tooltip ---------- */
+  #tooltip{
+    position:fixed;
+    pointer-events:none;
+    background:var(--ink);
+    color:var(--cream);
+    padding:10px 13px;
+    border-radius:8px;
+    font-size:12px;
+    line-height:1.5;
+    max-width:280px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.25);
+    opacity:0;
+    transform:translateY(4px);
+    transition:opacity .12s, transform .12s;
+    z-index:50;
+  }
+  #tooltip.show{opacity:1; transform:translateY(0);}
+  #tooltip .tt-title{font-weight:600; margin-bottom:4px; font-family:'Space Grotesk',sans-serif; font-size:13px;}
+  #tooltip .tt-row{display:flex; justify-content:space-between; gap:14px; font-family:'JetBrains Mono', monospace; font-size:11px;}
+  #tooltip .tt-note{margin-top:6px; color:#D9CBA8; font-size:10.5px; font-family:'Space Grotesk',sans-serif;}
+
+  footer{
+    margin-top:22px;
+    font-size:11px;
+    color:var(--ink-soft);
+    line-height:1.6;
+    border-top:1px solid var(--line);
+    padding-top:14px;
+  }
+
+  @media (max-width: 620px){
+    .row{grid-template-columns:24px 84px 1fr 72px;}
+    .country{font-size:11.5px;}
+    .stat-cluster{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header>
+    <div class="title-block">
+      <div class="eyebrow"><span class="egg-dot"></span>79 countries · Jan 2026 snapshot</div>
+      <h1>Who can actually <em>afford</em> a dozen eggs?</h1>
+      <div class="subtitle">Egg prices and minimum wages, side by side. Sort by the number that matters to you, and click a continent below to isolate it.</div>
+    </div>
+    <div class="stat-cluster">
+      <div class="stat"><div class="num">$3.33</div><div class="lbl">avg / dozen</div></div>
+      <div class="stat"><div class="num">$975</div><div class="lbl">avg wage</div></div>
+    </div>
+  </header>
+
+  <div class="controls">
+    <div class="sort-group">
+      <span class="lead">Sort by</span>
+      <button class="sort-btn active" data-metric="minWage">Minimum wage</button>
+      <button class="sort-btn" data-metric="eggPrice">Egg price</button>
+      <button class="sort-btn" data-metric="afford">Egg buying power</button>
+      <button class="dir-toggle" id="dirToggle" title="Flip sort direction">↓ high → low</button>
+    </div>
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <div id="chart-scroll">
+    <div id="chart"></div>
+  </div>
+
+  <footer id="footnote">
+    Egg buying power = dozens of eggs affordable per month on a minimum-wage income. Egg prices: GlobalProductPrices.com (Jan 2026). Minimum wages: WageIndicator, WorldPopulationReview, Deel, Playroll, Eurofound and national labour ministries (2025–2026); figures marked CBA/Sector are collective-bargaining floors used where no statutory national minimum wage exists. All values converted to USD.
+  </footer>
+
+</div>
+
+<div id="tooltip"></div>
+
+<script>
+const DATA = [
+{c:"Switzerland",continent:"Europe",egg:8.12,wage:4675.00,status:"CBA/Sector floor (est.)",afford:575.7,days:0.04,tier:"High",note:"No national min. wage; 5 cantons set their own floors. Geneva ≈ CHF 24.59/hr (Jan 2026)."},
+{c:"Norway",continent:"Europe",egg:7.18,wage:1869.00,status:"CBA/Sector floor (est.)",afford:260.3,days:0.08,tier:"Medium",note:"No national min. wage; 9 sectors have legally binding rates (allmenngjøring)."},
+{c:"Australia",continent:"Oceania",egg:7.18,wage:2691.00,status:"Statutory",afford:374.8,days:0.06,tier:"High",note:"AUD 948/week statutory minimum wage."},
+{c:"New Zealand",continent:"Oceania",egg:7.06,wage:2316.00,status:"Statutory",afford:328.0,days:0.07,tier:"High",note:"Statutory minimum wage, NZD converted to USD."},
+{c:"Uruguay",continent:"South America",egg:6.25,wage:605.00,status:"Statutory",afford:96.8,days:0.22,tier:"Low",note:"UYU 24,572/month effective Jan 2026."},
+{c:"Czechia",continent:"Europe",egg:5.17,wage:1094.90,status:"Statutory",afford:211.8,days:0.10,tier:"Medium",note:"Statutory minimum wage."},
+{c:"Sweden",continent:"Europe",egg:5.04,wage:2439.00,status:"CBA/Sector floor (est.)",afford:483.9,days:0.04,tier:"High",note:"No national min. wage; ~700 sector CBAs cover 90% of the workforce."},
+{c:"Belgium",continent:"Europe",egg:5.02,wage:2502.60,status:"Statutory",afford:498.5,days:0.04,tier:"High",note:"€2,111.89/month statutory."},
+{c:"Denmark",continent:"Europe",egg:4.91,wage:2250.00,status:"CBA/Sector floor (est.)",afford:458.2,days:0.05,tier:"High",note:"No national min. wage; CBAs cover ~82% of the workforce."},
+{c:"Austria",continent:"Europe",egg:4.90,wage:1651.00,status:"CBA/Sector floor (est.)",afford:336.9,days:0.06,tier:"Medium",note:"No national min. wage; 800+ sector CBAs cover ~98% of the workforce."},
+{c:"UK",continent:"Europe",egg:4.87,wage:2849.00,status:"Statutory",afford:585.0,days:0.04,tier:"High",note:"£12.21/hour statutory minimum wage."},
+{c:"Ireland",continent:"Europe",egg:4.78,wage:2879.50,status:"Statutory",afford:602.4,days:0.04,tier:"High",note:"€13.50/hour statutory minimum wage."},
+{c:"Hong Kong",continent:"Asia",egg:4.71,wage:530.00,status:"Statutory",afford:112.5,days:0.19,tier:"Low",note:"HKD 40/hour statutory minimum wage."},
+{c:"Italy",continent:"Europe",egg:4.65,wage:1470.00,status:"CBA/Sector floor (est.)",afford:316.1,days:0.07,tier:"Medium",note:"No national min. wage; ~992 sector CCNLs cover ~97% of the workforce."},
+{c:"Germany",continent:"Europe",egg:4.62,wage:2829.40,status:"Statutory",afford:612.4,days:0.04,tier:"High",note:"€12.82/hour statutory minimum wage."},
+{c:"USA",continent:"North America",egg:4.62,wage:1256.20,status:"Statutory",afford:271.9,days:0.08,tier:"Medium",note:"Federal $7.25/hour; many states set higher rates."},
+{c:"Greece",continent:"Europe",egg:4.57,wage:1216.90,status:"Statutory",afford:266.3,days:0.08,tier:"Medium",note:"€780/month statutory minimum wage."},
+{c:"Israel",continent:"Asia",egg:4.47,wage:1680.20,status:"Statutory",afford:375.9,days:0.06,tier:"Medium",note:"Statutory minimum wage, ILS converted to USD."},
+{c:"Ghana",continent:"Africa",egg:4.46,wage:32.00,status:"Statutory",afford:7.2,days:3.02,tier:"Minimal",note:"Daily statutory rate converted to a monthly figure."},
+{c:"France",continent:"Europe",egg:4.27,wage:2160.10,status:"Statutory",afford:505.9,days:0.04,tier:"High",note:"€11.88/hour statutory minimum wage."},
+{c:"Slovakia",continent:"Europe",egg:4.20,wage:1084.20,status:"Statutory",afford:258.1,days:0.08,tier:"Medium",note:"€750/month statutory minimum wage."},
+{c:"Lithuania",continent:"Europe",egg:4.20,wage:1366.20,status:"Statutory",afford:325.3,days:0.07,tier:"Medium",note:"€1,038/month statutory minimum wage."},
+{c:"Latvia",continent:"Europe",egg:4.06,wage:924.30,status:"Statutory",afford:227.7,days:0.10,tier:"Low",note:"€700/month statutory minimum wage."},
+{c:"Romania",continent:"Europe",egg:4.04,wage:942.00,status:"Statutory",afford:233.2,days:0.09,tier:"Low",note:"Statutory minimum wage, RON converted to USD."},
+{c:"Poland",continent:"Europe",egg:3.96,wage:1349.60,status:"Statutory",afford:340.8,days:0.06,tier:"Medium",note:"Statutory minimum wage, PLN converted to USD."},
+{c:"Chile",continent:"South America",egg:3.96,wage:555.50,status:"Statutory",afford:140.3,days:0.15,tier:"Low",note:"Statutory minimum wage, CLP converted to USD."},
+{c:"Finland",continent:"Europe",egg:3.82,wage:1613.00,status:"CBA/Sector floor (est.)",afford:422.3,days:0.05,tier:"Medium",note:"No national min. wage; sector CBAs (TES) cover ~90% of the workforce."},
+{c:"Spain",continent:"Europe",egg:3.80,wage:1636.40,status:"Statutory",afford:430.6,days:0.05,tier:"Medium",note:"€1,184/month statutory minimum wage."},
+{c:"Hungary",continent:"Europe",egg:3.80,wage:993.00,status:"Statutory",afford:261.3,days:0.08,tier:"Low",note:"Statutory minimum wage, HUF converted to USD."},
+{c:"Portugal",continent:"Europe",egg:3.61,wage:1271.40,status:"Statutory",afford:352.2,days:0.06,tier:"Medium",note:"€870/month statutory minimum wage."},
+{c:"Puerto Rico",continent:"North America",egg:3.58,wage:1680.00,status:"Statutory",afford:469.3,days:0.05,tier:"Medium",note:"$10.50/hour under FLSA (2026)."},
+{c:"Morocco",continent:"Africa",egg:3.51,wage:332.50,status:"Statutory",afford:94.7,days:0.23,tier:"Low",note:"Statutory minimum wage, MAD converted to USD."},
+{c:"Netherlands",continent:"Europe",egg:3.45,wage:2249.00,status:"Statutory",afford:651.9,days:0.03,tier:"High",note:"€2,069/month statutory minimum wage."},
+{c:"Croatia",continent:"Europe",egg:3.44,wage:1244.20,status:"Statutory",afford:361.7,days:0.06,tier:"Medium",note:"Statutory minimum wage, EUR converted to USD."},
+{c:"South Africa",continent:"Africa",egg:3.20,wage:268.80,status:"Statutory",afford:84.0,days:0.26,tier:"Very Low",note:"Statutory minimum wage, ZAR converted to USD."},
+{c:"Mexico",continent:"North America",egg:3.16,wage:330.00,status:"Statutory",afford:104.4,days:0.21,tier:"Low",note:"Statutory minimum wage, daily MXN rate converted to USD."},
+{c:"South Korea",continent:"Asia",egg:3.04,wage:1182.00,status:"Statutory",afford:388.8,days:0.06,tier:"Medium",note:"Statutory minimum wage, KRW converted to USD."},
+{c:"Japan",continent:"Asia",egg:2.96,wage:1244.70,status:"Statutory",afford:420.5,days:0.05,tier:"Medium",note:"Statutory minimum wage, JPY converted to USD."},
+{c:"Slovenia",continent:"Europe",egg:2.93,wage:1514.30,status:"Statutory",afford:516.8,days:0.04,tier:"Medium",note:"€1,074/month statutory minimum wage."},
+{c:"Canada",continent:"North America",egg:2.89,wage:2191.60,status:"Statutory",afford:758.3,days:0.03,tier:"High",note:"Statutory minimum wage, CAD converted to USD."},
+{c:"Colombia",continent:"South America",egg:2.73,wage:384.40,status:"Statutory",afford:140.8,days:0.15,tier:"Low",note:"Statutory minimum wage, COP converted to USD."},
+{c:"UA Emirates",continent:"Asia",egg:2.72,wage:1634.00,status:"Statutory",afford:600.7,days:0.04,tier:"Medium",note:"Applies to Emirati nationals in the private sector; no statutory floor for the majority-expatriate workforce."},
+{c:"Ivory Coast",continent:"Africa",egg:2.71,wage:124.20,status:"Statutory",afford:45.8,days:0.47,tier:"Very Low",note:"FCFA 75,000/month statutory minimum wage."},
+{c:"Singapore",continent:"Asia",egg:2.68,wage:1415.00,status:"CBA/Sector floor (est.)",afford:528.0,days:0.04,tier:"Medium",note:"No national min. wage; Progressive Wage Model sets sector floors. Figure is the lowest entry tier (cleaning)."},
+{c:"Nigeria",continent:"Africa",egg:2.66,wage:45.50,status:"Statutory",afford:17.1,days:1.27,tier:"Minimal",note:"Statutory minimum wage, NGN converted to USD."},
+{c:"Malaysia",continent:"Asia",egg:2.60,wage:430.50,status:"Statutory",afford:165.6,days:0.13,tier:"Low",note:"MYR 1,500/month statutory minimum wage."},
+{c:"Serbia",continent:"Europe",egg:2.57,wage:881.60,status:"Statutory",afford:343.0,days:0.06,tier:"Low",note:"Statutory minimum wage, RSD converted to USD."},
+{c:"Thailand",continent:"Asia",egg:2.54,wage:252.60,status:"Statutory",afford:99.4,days:0.22,tier:"Very Low",note:"Statutory daily minimum wage converted to a monthly figure."},
+{c:"Jordan",continent:"Asia",egg:2.54,wage:409.00,status:"Statutory",afford:161.0,days:0.13,tier:"Low",note:"Statutory minimum wage, JOD converted to USD."},
+{c:"Peru",continent:"South America",egg:2.49,wage:331.80,status:"Statutory",afford:133.3,days:0.16,tier:"Low",note:"Statutory minimum wage, PEN converted to USD."},
+{c:"Turkey",continent:"Asia",egg:2.47,wage:759.40,status:"Statutory",afford:307.4,days:0.07,tier:"Low",note:"Statutory minimum wage, TRY converted to USD."},
+{c:"Brazil",continent:"South America",egg:2.42,wage:303.80,status:"Statutory",afford:125.5,days:0.17,tier:"Low",note:"Statutory minimum wage, BRL converted to USD."},
+{c:"Tanzania",continent:"Africa",egg:2.37,wage:32.00,status:"Statutory",afford:13.5,days:1.60,tier:"Minimal",note:"Statutory minimum wage, TZS converted to USD."},
+{c:"Saudi Arabia",continent:"Asia",egg:2.34,wage:1067.00,status:"Statutory",afford:456.0,days:0.05,tier:"Medium",note:"Applies to Saudi nationals under Nitaqat/Saudization rules; no statutory floor for expatriates."},
+{c:"Ecuador",continent:"South America",egg:2.33,wage:482.00,status:"Statutory",afford:206.9,days:0.10,tier:"Low",note:"Statutory minimum wage in USD."},
+{c:"Cameroon",continent:"Africa",egg:2.32,wage:60.10,status:"Statutory",afford:25.9,days:0.84,tier:"Minimal",note:"FCFA 36,270/month statutory minimum wage."},
+{c:"China",continent:"Asia",egg:2.28,wage:391.70,status:"Statutory",afford:171.8,days:0.13,tier:"Low",note:"Statutory minimum wage, highest regional rate, CNY converted to USD."},
+{c:"Philippines",continent:"Asia",egg:2.23,wage:254.60,status:"Statutory",afford:114.2,days:0.19,tier:"Very Low",note:"Statutory daily minimum wage converted to a monthly figure."},
+{c:"Russia",continent:"Europe",egg:2.21,wage:242.50,status:"Statutory",afford:109.7,days:0.20,tier:"Very Low",note:"Statutory minimum wage, RUB converted to USD."},
+{c:"Kuwait",continent:"Asia",egg:2.21,wage:195.40,status:"Statutory",afford:88.4,days:0.25,tier:"Very Low",note:"KWD 60/month statutory minimum wage."},
+{c:"Ukraine",continent:"Europe",egg:2.10,wage:202.90,status:"Statutory",afford:96.6,days:0.22,tier:"Very Low",note:"Statutory minimum wage, UAH converted to USD."},
+{c:"Vietnam",continent:"Asia",egg:2.10,wage:212.40,status:"Statutory",afford:101.1,days:0.21,tier:"Very Low",note:"Statutory minimum wage, VND converted to USD."},
+{c:"Paraguay",continent:"South America",egg:2.09,wage:405.90,status:"Statutory",afford:194.2,days:0.11,tier:"Low",note:"Statutory minimum wage, PYG converted to USD."},
+{c:"Tunisia",continent:"Africa",egg:2.01,wage:149.00,status:"Statutory",afford:74.1,days:0.29,tier:"Very Low",note:"Statutory minimum wage, TND converted to USD."},
+{c:"Dominican Republic",continent:"North America",egg:2.01,wage:269.90,status:"Statutory",afford:134.3,days:0.16,tier:"Very Low",note:"Statutory minimum wage, DOP converted to USD."},
+{c:"Costa Rica",continent:"North America",egg:1.94,wage:726.00,status:"Statutory",afford:374.2,days:0.06,tier:"Low",note:"Statutory minimum wage, CRC converted to USD."},
+{c:"India",continent:"Asia",egg:1.89,wage:43.20,status:"Statutory",afford:22.9,days:0.95,tier:"Minimal",note:"National floor daily wage converted to a monthly figure."},
+{c:"Kenya",continent:"Africa",egg:1.89,wage:116.90,status:"Statutory",afford:61.9,days:0.35,tier:"Very Low",note:"Statutory minimum wage average, KES converted to USD."},
+{c:"Guatemala",continent:"North America",egg:1.89,wage:513.10,status:"Statutory",afford:271.5,days:0.08,tier:"Low",note:"Statutory minimum wage, GTQ converted to USD."},
+{c:"Uganda",continent:"Africa",egg:1.83,wage:35.10,status:"Statutory",afford:19.2,days:1.13,tier:"Minimal",note:"UGX 130,000/month statutory minimum wage."},
+{c:"Bolivia",continent:"South America",egg:1.81,wage:469.00,status:"Statutory",afford:259.1,days:0.08,tier:"Low",note:"Statutory minimum wage, BOB converted to USD."},
+{c:"Kazakhstan",continent:"Asia",egg:1.80,wage:161.50,status:"Statutory",afford:89.7,days:0.24,tier:"Very Low",note:"Statutory minimum wage, KZT converted to USD."},
+{c:"Azerbaijan",continent:"Asia",egg:1.80,wage:235.30,status:"Statutory",afford:130.7,days:0.17,tier:"Very Low",note:"Statutory minimum wage, AZN converted to USD."},
+{c:"Indonesia",continent:"Asia",egg:1.79,wage:343.80,status:"Statutory",afford:192.1,days:0.11,tier:"Low",note:"Statutory minimum wage average, IDR converted to USD."},
+{c:"Zambia",continent:"Africa",egg:1.77,wage:52.80,status:"Statutory",afford:29.8,days:0.73,tier:"Minimal",note:"ZMK 1,050/month statutory minimum wage."},
+{c:"Sri Lanka",continent:"Asia",egg:1.69,wage:56.50,status:"Statutory",afford:33.4,days:0.65,tier:"Minimal",note:"Statutory minimum wage, LKR converted to USD."},
+{c:"Egypt",continent:"Africa",egg:1.57,wage:146.70,status:"Statutory",afford:93.4,days:0.23,tier:"Very Low",note:"Statutory minimum wage, EGP converted to USD."},
+{c:"Bangladesh",continent:"Asia",egg:1.55,wage:101.50,status:"Statutory",afford:65.5,days:0.33,tier:"Very Low",note:"Statutory minimum wage, BDT converted to USD."},
+{c:"Pakistan",continent:"Asia",egg:1.40,wage:129.90,status:"Statutory",afford:92.8,days:0.23,tier:"Very Low",note:"Statutory minimum wage, PKR converted to USD."}
+];
+
+const CONTINENT_COLOR = {
+  "Europe":"var(--c-europe)",
+  "Asia":"var(--c-asia)",
+  "Africa":"var(--c-africa)",
+  "North America":"var(--c-namerica)",
+  "South America":"var(--c-samerica)",
+  "Oceania":"var(--c-oceania)"
+};
+const CONTINENT_HEX = {
+  "Europe":"#4C6EF5","Asia":"#E8543A","Africa":"#0FA787",
+  "North America":"#9B5DE5","South America":"#D9A400","Oceania":"#1AA6B7"
+};
+
+const METRICS = {
+  minWage:  { label:"Minimum wage", get:d=>d.wage,   fmt:v=>"$"+Math.round(v).toLocaleString() },
+  eggPrice: { label:"Egg price",    get:d=>d.egg,     fmt:v=>"$"+v.toFixed(2) },
+  afford:   { label:"Egg buying power", get:d=>d.afford, fmt:v=>v.toFixed(1)+" dz/mo" }
+};
+
+let state = {
+  metric:"minWage",
+  descending:true,
+  activeContinents:new Set(Object.keys(CONTINENT_COLOR))
+};
+
+function buildLegend(){
+  const legend = document.getElementById("legend");
+  legend.innerHTML = "";
+  Object.keys(CONTINENT_COLOR).forEach(cont=>{
+    const chip = document.createElement("div");
+    chip.className = "legend-chip";
+    chip.dataset.cont = cont;
+    chip.innerHTML = `<span class="legend-swatch" style="background:${CONTINENT_COLOR[cont]}"></span>${cont}`;
+    chip.addEventListener("click", ()=>{
+      if(state.activeContinents.has(cont)){
+        if(state.activeContinents.size>1) state.activeContinents.delete(cont);
+      } else {
+        state.activeContinents.add(cont);
+      }
+      render();
+    });
+    legend.appendChild(chip);
+  });
+}
+
+function render(){
+  const metricDef = METRICS[state.metric];
+  const filtered = DATA.filter(d=>state.activeContinents.has(d.continent));
+  const sorted = [...filtered].sort((a,b)=>{
+    const va = metricDef.get(a), vb = metricDef.get(b);
+    return state.descending ? vb-va : va-vb;
+  });
+  const maxVal = Math.max(...DATA.map(metricDef.get));
+
+  const chart = document.getElementById("chart");
+  chart.innerHTML = "";
+
+  sorted.forEach((d, i)=>{
+    const val = metricDef.get(d);
+    const pct = Math.max(2, (val/maxVal)*100);
+    const row = document.createElement("div");
+    row.className = "row";
+    row.innerHTML = `
+      <div class="rank">${i+1}</div>
+      <div class="country">${d.c}</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${pct}%; background:${CONTINENT_COLOR[d.continent]}"></div>
+      </div>
+      <div class="value">${metricDef.fmt(val)}</div>
+    `;
+    row.addEventListener("mousemove", (e)=>showTooltip(e, d));
+    row.addEventListener("mouseleave", hideTooltip);
+    chart.appendChild(row);
+  });
+
+  // update legend dim state
+  document.querySelectorAll(".legend-chip").forEach(chip=>{
+    chip.classList.toggle("off", !state.activeContinents.has(chip.dataset.cont));
+  });
+
+  // update sort buttons
+  document.querySelectorAll(".sort-btn").forEach(btn=>{
+    btn.classList.toggle("active", btn.dataset.metric === state.metric);
+  });
+  document.getElementById("dirToggle").textContent = state.descending ? "↓ high → low" : "↑ low → high";
+}
+
+function showTooltip(e, d){
+  const tt = document.getElementById("tooltip");
+  tt.innerHTML = `
+    <div class="tt-title">${d.c} <span style="color:${CONTINENT_COLOR[d.continent]}">· ${d.continent}</span></div>
+    <div class="tt-row"><span>Egg price</span><span>$${d.egg.toFixed(2)} / dozen</span></div>
+    <div class="tt-row"><span>Min. wage</span><span>$${d.wage.toLocaleString()} / mo</span></div>
+    <div class="tt-row"><span>Buying power</span><span>${d.afford.toFixed(1)} dz / mo</span></div>
+    <div class="tt-row"><span>Days of wage per dozen</span><span>${d.days.toFixed(2)}</span></div>
+    <div class="tt-row"><span>Wage type</span><span>${d.status}</span></div>
+    <div class="tt-note">${d.note}</div>
+  `;
+  tt.classList.add("show");
+  const ttWidth = 280;
+  let x = e.clientX + 16;
+  if(x + ttWidth > window.innerWidth - 10) x = e.clientX - ttWidth - 16;
+  tt.style.left = x + "px";
+  tt.style.top = Math.min(e.clientY + 12, window.innerHeight - 160) + "px";
+}
+function hideTooltip(){
+  document.getElementById("tooltip").classList.remove("show");
+}
+
+document.querySelectorAll(".sort-btn").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    state.metric = btn.dataset.metric;
+    render();
+  });
+});
+document.getElementById("dirToggle").addEventListener("click", ()=>{
+  state.descending = !state.descending;
+  render();
+});
+
+buildLegend();
+render();
+</script>
+</body>
+</html>
