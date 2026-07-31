@@ -1,1 +1,870 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ke mana larinya upah awak kapal? | Mongabay Indonesia</title>
+<meta name="description" content="Prototipe visualisasi data interaktif: aliran nilai upah awak kapal perikanan dari janji perekrut hingga uang yang benar-benar diterima. Data dummy untuk prototipe.">
 
+<!-- Font opsional. Jika tidak ada koneksi internet, sistem otomatis memakai fallback serif/sans di bawah. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================================
+   SISTEM DESAIN MONGABAY  (dipakai identik di seluruh file 01 sampai 05)
+   Sumber warna:
+     - Lampiran 5 (logo Mongabay)  : hijau tua #092F29, putih #FDFDFD
+     - Lampiran 4 (Sankey referensi): cyan #00FFF9, toska tua #006565,
+                                      kuning #F9EB30, latar sangat gelap
+   Semua nilai di bawah ini boleh diubah tanpa menyentuh logika grafik.
+   ========================================================================== */
+:root{
+  /* ---------- WARNA LATAR & PERMUKAAN ---------- */
+  --bg:        #061a16;   /* latar terluar, versi lebih gelap dari hijau logo */
+  --bg-2:      #092f29;   /* hijau Mongabay, diambil langsung dari file logo */
+  --panel:     #0c3b33;   /* kartu / panel */
+  --panel-2:   #10493f;   /* panel tingkat kedua, tooltip */
+  --line:      #17594d;   /* garis pembatas utama */
+  --line-soft: #124a40;   /* garis pembatas halus */
+
+  /* ---------- WARNA TEKS ---------- */
+  --text:   #fdfdfd;      /* putih logo Mongabay */
+  --text-2: #a9cfc4;      /* teks sekunder */
+  --text-3: #6f9c90;      /* caption, catatan kaki */
+
+  /* ---------- WARNA SEMANTIK (arti tetap sama di semua visualisasi) ----------
+     terima  = uang yang benar-benar sampai ke tangan AKP
+     sah     = potongan yang secara hukum boleh ditanggung bersama
+     ilegal  = biaya modal/aset pemilik yang dialihkan ke AKP
+     pihak3  = potongan oleh pihak ketiga (calo, toko grosir, penyedia dokumen)
+     tahan   = upah ditahan atau tidak dibayarkan
+     gelap   = potongan tanpa penjelasan / tidak transparan
+  ------------------------------------------------------------------------- */
+  --c-terima:  #f2c744;
+  --c-sah:     #19d3c5;
+  --c-sah-dp:  #006565;
+  --c-ilegal:  #ff6b57;
+  --c-pihak3:  #ff9f45;
+  --c-tahan:   #e23d6d;
+  --c-gelap:   #b06bd6;
+  --c-base:    #7fd8cb;   /* batang "pokok" alur, netral */
+
+  /* ---------- TIPOGRAFI ---------- */
+  --font-display: "Source Serif 4", Georgia, "Iowan Old Style", "Times New Roman", serif;
+  --font-body:    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-num:     "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* ---------- SPASI & RADIUS ---------- */
+  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:24px; --s-6:32px; --s-7:48px;
+  --r-s:6px; --r-m:12px; --r-l:18px; --r-pill:999px;
+  --maxw:1180px;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font-body);
+  font-size:16px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:var(--s-5) var(--s-4) var(--s-7)}
+
+/* ---------- HEADER + LOGO ----------
+   Logo dipasang dengan tinggi tetap dan width:auto sehingga rasio asli
+   (480 : 141 = 3,4036) tidak pernah berubah. Jangan set width dan height
+   sekaligus pada elemen ini.                                              */
+.masthead{
+  display:flex;align-items:center;justify-content:space-between;gap:var(--s-4);
+  flex-wrap:wrap;
+  background:var(--bg-2);
+  border:1px solid var(--line-soft);
+  border-radius:var(--r-m);
+  padding:var(--s-3) var(--s-4);
+  margin-bottom:var(--s-5);
+}
+.masthead img{height:34px;width:auto;display:block}
+.masthead .kicker{
+  font-family:var(--font-body);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--text-3);font-weight:600;
+}
+.badge-dummy{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:#0b2b25;background:var(--c-terima);
+  border-radius:var(--r-pill);padding:5px 12px;
+}
+.badge-dummy::before{content:"";width:7px;height:7px;border-radius:50%;background:#0b2b25}
+
+/* ---------- JUDUL ---------- */
+.eyebrow{
+  font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--c-sah);
+  font-weight:600;margin:0 0 var(--s-2)
+}
+h1{
+  font-family:var(--font-display);font-weight:700;line-height:1.1;
+  font-size:clamp(28px,5.2vw,52px);margin:0 0 var(--s-3);letter-spacing:-.01em;
+}
+.dek{
+  font-size:clamp(15px,1.6vw,18px);color:var(--text-2);max-width:62ch;margin:0 0 var(--s-5)
+}
+h2{font-family:var(--font-display);font-size:clamp(20px,2.6vw,28px);margin:0 0 var(--s-2);font-weight:600}
+
+/* ---------- PANEL / KARTU ---------- */
+.card{
+  background:var(--bg-2);border:1px solid var(--line-soft);
+  border-radius:var(--r-l);padding:var(--s-4);margin-bottom:var(--s-4);
+}
+
+/* ---------- PANDUAN BACA (collapsible) ---------- */
+details.howto{
+  background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--r-m);padding:var(--s-3) var(--s-4);margin-bottom:var(--s-4)
+}
+details.howto summary{
+  cursor:pointer;font-weight:600;font-size:14px;color:var(--c-sah);
+  list-style:none;display:flex;align-items:center;gap:8px
+}
+details.howto summary::-webkit-details-marker{display:none}
+details.howto summary::before{content:"?";
+  width:20px;height:20px;border-radius:50%;background:var(--c-sah);color:#062b26;
+  display:grid;place-items:center;font-size:12px;font-weight:700;flex:none}
+details.howto[open] summary{margin-bottom:var(--s-3)}
+details.howto ol{margin:0;padding-left:20px;color:var(--text-2);font-size:14px}
+details.howto li{margin-bottom:6px}
+
+/* ---------- TOMBOL / KONTROL ---------- */
+.controls{display:flex;flex-wrap:wrap;gap:var(--s-2);align-items:center;margin-bottom:var(--s-4)}
+.btn{
+  font-family:var(--font-body);font-size:13px;font-weight:600;
+  color:var(--text-2);background:var(--panel);
+  border:1px solid var(--line);border-radius:var(--r-pill);
+  padding:8px 16px;cursor:pointer;transition:all .18s ease;
+}
+.btn:hover{border-color:var(--c-sah);color:var(--text)}
+.btn[aria-pressed="true"]{background:var(--c-sah);border-color:var(--c-sah);color:#062b26}
+.btn:focus-visible{outline:2px solid var(--c-terima);outline-offset:2px}
+
+/* ---------- LEGENDA ----------
+   Setiap kategori punya warna DAN pola tekstur DAN simbol, sehingga
+   diagram tetap terbaca tanpa mengandalkan warna saja.                    */
+.legend{display:flex;flex-wrap:wrap;gap:var(--s-2) var(--s-4);margin:var(--s-4) 0 var(--s-3)}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-2);cursor:pointer;
+  border-radius:var(--r-s);padding:4px 6px;transition:background .15s}
+.legend-item:hover{background:var(--panel)}
+.legend-item.off{opacity:.35}
+.legend-swatch{width:26px;height:14px;border-radius:3px;flex:none;border:1px solid rgba(255,255,255,.22)}
+.legend-item b{color:var(--text);font-weight:600}
+
+/* ---------- AREA DIAGRAM ---------- */
+.chart-shell{position:relative}
+.scroll-hint{
+  display:none;font-size:12px;color:var(--text-3);margin-bottom:var(--s-2);
+  align-items:center;gap:6px
+}
+.scroll-wrap{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+.scroll-wrap::-webkit-scrollbar{height:8px}
+.scroll-wrap::-webkit-scrollbar-track{background:var(--panel);border-radius:4px}
+.scroll-wrap::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+svg{display:block}
+svg text{font-family:var(--font-body)}
+
+/* animasi masuk yang terbatas tapi fungsional */
+.link-path{opacity:0;transition:opacity .5s ease, fill-opacity .2s ease}
+.link-path.in{opacity:1}
+.node-rect{opacity:0;transition:opacity .45s ease}
+.node-rect.in{opacity:1}
+.node-label{opacity:0;transition:opacity .45s ease .1s}
+.node-label.in{opacity:1}
+.dim{fill-opacity:.07 !important}
+.dim-node{opacity:.22 !important}
+
+/* ---------- TOOLTIP ---------- */
+#tip{
+  position:fixed;pointer-events:none;z-index:60;opacity:0;transform:translateY(4px);
+  transition:opacity .12s ease, transform .12s ease;
+  background:var(--panel-2);border:1px solid var(--line);
+  border-radius:var(--r-m);padding:10px 12px;max-width:280px;
+  box-shadow:0 14px 34px rgba(0,0,0,.55);
+}
+#tip.show{opacity:1;transform:translateY(0)}
+#tip .t-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px;line-height:1.3}
+#tip .t-row{display:flex;justify-content:space-between;gap:14px;font-size:12px;color:var(--text-2);margin-top:3px}
+#tip .t-row b{font-family:var(--font-num);color:var(--text);font-weight:600}
+#tip .t-note{font-size:11.5px;color:var(--text-3);margin-top:8px;border-top:1px solid var(--line);padding-top:6px;line-height:1.45}
+#tip .t-chip{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+  padding:2px 7px;border-radius:var(--r-pill);margin-bottom:6px;color:#062b26}
+
+/* ---------- TAMPILAN DAFTAR (alternatif diagram, penting untuk layar kecil) ---------- */
+#listView{display:none}
+#listView table{width:100%;border-collapse:collapse;font-size:13.5px}
+#listView th{
+  text-align:left;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);
+  padding:8px 10px;border-bottom:1px solid var(--line);font-weight:600
+}
+#listView td{padding:9px 10px;border-bottom:1px solid var(--line-soft);vertical-align:middle}
+#listView tr:hover td{background:var(--panel)}
+#listView .num{font-family:var(--font-num);text-align:right;white-space:nowrap}
+#listView .bar{height:9px;border-radius:3px;min-width:2px;border:1px solid rgba(255,255,255,.2)}
+#listView .sym{font-family:var(--font-num);font-size:11px;color:var(--text-3);padding-right:6px}
+
+/* ---------- ANGKA KUNCI ---------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:var(--s-3);margin:var(--s-5) 0}
+.kpi{background:var(--panel);border:1px solid var(--line-soft);border-radius:var(--r-m);padding:var(--s-4)}
+.kpi .k-lab{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);font-weight:600}
+.kpi .k-val{font-family:var(--font-num);font-size:clamp(22px,3.2vw,30px);font-weight:600;margin:6px 0 2px;line-height:1.1}
+.kpi .k-sub{font-size:12.5px;color:var(--text-2)}
+.kpi.accent .k-val{color:var(--c-terima)}
+.kpi.loss .k-val{color:var(--c-ilegal)}
+
+/* ---------- CAPTION & SUMBER ---------- */
+.caption{font-size:13px;color:var(--text-2);margin-top:var(--s-3);max-width:78ch}
+.source{
+  font-size:12px;color:var(--text-3);margin-top:var(--s-4);
+  border-top:1px solid var(--line-soft);padding-top:var(--s-3);line-height:1.6
+}
+.source b{color:var(--text-2);font-weight:600}
+.footer-logo{display:flex;align-items:center;gap:var(--s-3);margin-top:var(--s-5);
+  padding-top:var(--s-4);border-top:1px solid var(--line-soft);flex-wrap:wrap}
+.footer-logo img{height:24px;width:auto;opacity:.85;display:block}
+.footer-logo span{font-size:12px;color:var(--text-3)}
+
+@media (max-width:780px){
+  .scroll-hint{display:flex}
+  .wrap{padding:var(--s-4) var(--s-3) var(--s-6)}
+}
+@media (prefers-reduced-motion:reduce){
+  .link-path,.node-rect,.node-label{transition:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===================== HEADER ===================== -->
+  <header class="masthead">
+    <img src="data:image/png;base64,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" alt="Mongabay Indonesia">
+    <span class="kicker">Liputan berbasis data &middot; Prototipe</span>
+    <span class="badge-dummy">Data dummy</span>
+  </header>
+
+  <p class="eyebrow">Visual 1 &middot; Grafik utama</p>
+  <h1>Ke mana larinya upah awak kapal?</h1>
+  <p class="dek">
+    Simulasi aliran nilai upah satu kapal pukat cincin pelagis dengan 24 awak selama trip delapan bulan.
+    Ikuti pita dari kiri ke kanan: dari upah yang dijanjikan perekrut di darat, sampai jumlah yang benar-benar
+    dibawa pulang. Setiap percabangan ke bawah adalah nilai yang berpindah ke pihak lain.
+  </p>
+
+  <!-- ===================== PANDUAN BACA ===================== -->
+  <details class="howto" open>
+    <summary>Cara membaca diagram ini</summary>
+    <ol>
+      <li>Tebal pita sebanding dengan besar uang. Semakin tebal, semakin besar nilainya.</li>
+      <li>Alur bergerak dari kiri ke kanan melalui empat tahap: <b>janji perekrut</b>, <b>isi kontrak</b>, <b>hak upah setelah perhitungan kapal</b>, lalu <b>tujuan akhir uang</b>.</li>
+      <li>Batang di baris paling atas adalah alur pokok yang terus berjalan. Semua batang di bawahnya adalah nilai yang keluar dari kantong awak kapal.</li>
+      <li>Batang emas polos di kanan atas adalah satu-satunya uang yang benar-benar diterima AKP.</li>
+      <li>Arahkan kursor atau sentuh batang dan pita untuk melihat nilai rupiah, persentase, dan dasar hukumnya. Klik untuk mengunci sorotan.</li>
+      <li>Kategori dibedakan oleh warna sekaligus pola tekstur dan simbol, jadi tetap terbaca tanpa warna.</li>
+    </ol>
+  </details>
+
+  <!-- ===================== KONTROL ===================== -->
+  <div class="controls">
+    <button class="btn" id="btnDiagram" aria-pressed="true">Diagram alir</button>
+    <button class="btn" id="btnList" aria-pressed="false">Tampilan daftar</button>
+    <button class="btn" id="btnPattern" aria-pressed="true">Pola tekstur</button>
+    <button class="btn" id="btnReplay">Putar ulang animasi</button>
+    <button class="btn" id="btnReset">Hapus sorotan</button>
+  </div>
+
+  <!-- ===================== LEGENDA ===================== -->
+  <div class="legend" id="legend"></div>
+
+  <!-- ===================== DIAGRAM ===================== -->
+  <div class="card chart-shell">
+    <div class="scroll-hint">&#8596; Geser ke samping untuk melihat seluruh alur, atau gunakan tombol "Tampilan daftar".</div>
+    <div class="scroll-wrap" id="scrollWrap">
+      <svg id="sankey" role="img" aria-label="Diagram alir nilai upah awak kapal perikanan dari janji perekrut sampai upah diterima"></svg>
+    </div>
+    <div id="listView"></div>
+    <p class="caption" id="cap">
+      Grafik 1. Aliran nilai upah kolektif 24 awak kapal dalam satu trip delapan bulan (simulasi).
+      Nilai awal Rp 1,80 miliar adalah total upah yang dijanjikan perekrut kepada seluruh awak.
+    </p>
+  </div>
+
+  <!-- ===================== ANGKA KUNCI ===================== -->
+  <div class="kpis" id="kpis"></div>
+
+  <!-- ===================== SUMBER ===================== -->
+  <p class="source">
+    <b>Catatan data:</b> seluruh angka pada halaman ini adalah <b>data dummy atau simulasi</b> yang dibuat untuk
+    keperluan prototipe visualisasi, bukan data riil dari kasus tertentu. Struktur, skala, dan proporsi angka
+    disusun mengikuti pola temuan pada laporan advokasi DFW Indonesia (2026), "Premi Kecil, Kasbon Besar, dan
+    Sistem Kemitraan Palsu: Pencurian Upah Sistemik di Perikanan Tangkap Industrial Indonesia", serta proposal
+    liputan Mongabay Indonesia. Angka tidak boleh dikutip sebagai temuan.<br>
+    <b>Pembanding:</b> UMP terendah Indonesia 2025 (Jawa Tengah) Rp 2.169.348 per bulan.<br>
+    <b>Dasar hukum yang dirujuk pada tooltip:</b> UU No. 17/2008 Pasal 223, PP No. 36/2021 Pasal 58,
+    KUH Perdata Pasal 1631, Konvensi ILO No. 188 Pasal 27, Konvensi ILO No. 95 Pasal 7, UU No. 8/1999 Pasal 15.
+  </p>
+
+  <div class="footer-logo">
+    <img src="data:image/png;base64,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" alt="Mongabay Indonesia">
+    <span>Prototipe visualisasi data &middot; Mongabay Indonesia</span>
+  </div>
+</div>
+
+<div id="tip" role="tooltip" aria-hidden="true"></div>
+
+<script>
+"use strict";
+/* ============================================================================
+   1. DATA DUMMY
+   ---------------------------------------------------------------------------
+   Satuan seluruh nilai: JUTA RUPIAH.
+   Skenario: satu kapal pukat cincin pelagis besar, 24 awak, trip 8 bulan.
+   Ubah angka "value" di bawah untuk mengganti skenario. Total otomatis
+   dihitung ulang dan tata letak menyesuaikan sendiri.
+   ========================================================================== */
+
+/* Kategori semantik. Warna diambil dari variabel CSS agar satu sumber kebenaran. */
+const CATS = {
+  base:   {label:"Alur pokok upah",                       sym:"\u25CF", color:"--c-base"},
+  terima: {label:"Diterima AKP",                          sym:"\u2605", color:"--c-terima"},
+  sah:    {label:"Potongan sah (boleh dibagi bersama)",   sym:"\u25B2", color:"--c-sah"},
+  ilegal: {label:"Biaya modal pemilik yang dialihkan",    sym:"\u25A0", color:"--c-ilegal"},
+  pihak3: {label:"Potongan pihak ketiga",                 sym:"\u25C6", color:"--c-pihak3"},
+  tahan:  {label:"Upah ditahan / tidak dibayar",          sym:"\u2716", color:"--c-tahan"},
+  gelap:  {label:"Potongan tanpa penjelasan",             sym:"\u25AC", color:"--c-gelap"}
+};
+
+/* Kategori yang diberi pola tekstur (untuk keterbacaan tanpa warna). */
+const PATTERNED = ["ilegal","pihak3","tahan","gelap"];
+
+/* --- NODE ---
+   layer  : kolom (0 paling kiri)
+   order  : urutan vertikal dalam kolom, 0 di paling atas
+   cat    : kategori semantik
+   note   : penjelasan yang muncul di tooltip                                */
+const NODES = [
+  /* Kolom 0: titik berangkat */
+  {id:"janji",   layer:0, order:0, cat:"base", name:"Upah dijanjikan perekrut",
+   note:"Angka yang disebut calo atau perusahaan perekrut di darat sebelum AKP naik kapal. Umumnya hanya lisan dan tidak pernah menjadi lampiran kontrak."},
+
+  /* Kolom 1 */
+  {id:"kontrak", layer:1, order:0, cat:"base", name:"Nilai tertulis di kontrak",
+   note:"Nilai yang benar-benar tertulis pada perjanjian kerja laut. Selisihnya dengan janji lisan tidak pernah dijelaskan kepada AKP."},
+  {id:"selisih", layer:1, order:1, cat:"gelap", name:"Selisih janji vs kontrak",
+   note:"Nilai yang hilang sebelum kapal berangkat. Karena janji perekrut tidak tertulis, selisih ini nyaris mustahil dituntut secara hukum."},
+
+  /* Kolom 2 */
+  {id:"hak",     layer:2, order:0, cat:"base", name:"Hak upah setelah perhitungan kapal",
+   note:"Sisa hak upah kolektif AKP setelah pembukuan kapal ditutup, sebelum potongan personal dikenakan."},
+  {id:"pseudo",  layer:2, order:1, cat:"ilegal", name:"Susut oleh skema netto semu (pseudo-net)",
+   note:"Biaya docking, sparepart, cat lambung, mesin, alat tangkap, VMS, perizinan, dan gaji staf darat dimasukkan sebagai biaya operasional bersama sebelum bagi hasil. Melanggar UU No. 17/2008 Pasal 223 dan KUH Perdata Pasal 1631 karena penyusutan aset adalah risiko pemilik modal."},
+  {id:"tendoan", layer:2, order:2, cat:"ilegal", name:"Tendoan: utang trip sebelumnya",
+   note:"Kerugian operasional trip terdahulu dibawa masuk ke kontrak trip berikutnya. Inilah mesin utama perbudakan utang, karena AKP terus bekerja untuk melunasi utang yang tidak pernah mereka buat."},
+
+  /* Kolom 3: tujuan akhir */
+  {id:"terima",  layer:3, order:0, cat:"terima", name:"DITERIMA TUNAI OLEH AKP",
+   note:"Satu-satunya uang yang benar-benar dibawa pulang. Setara Rp 1,48 juta per orang per bulan, di bawah UMP terendah nasional 2025."},
+  {id:"kasbon",  layer:3, order:1, cat:"pihak3", name:"Kasbon grosir: rokok, kopi, mi, susu",
+   note:"Toko grosir di atas kapal adalah pasar tunggal. Harga ditetapkan sepihak dan dibayar dengan potong upah. Bersinggungan dengan Konvensi ILO No. 95 Pasal 7 dan UU No. 8/1999 Pasal 15."},
+  {id:"calo",    layer:3, order:2, cat:"pihak3", name:"Potongan calo & biaya rekrutmen",
+   note:"Biaya perantara yang seharusnya menjadi tanggungan perusahaan, tetapi ditalangi calo lalu ditagihkan kembali kepada AKP."},
+  {id:"dokumen", layer:3, order:3, cat:"pihak3", name:"Biaya dokumen & administrasi",
+   note:"Buku pelaut, sertifikat dasar, cek fisik, dan dokumen keberangkatan yang dibebankan kepada pekerja."},
+  {id:"transp",  layer:3, order:4, cat:"pihak3", name:"Transportasi berangkat & pulang",
+   note:"Sekitar sepertiga responden survei menanggung sendiri ongkos pergi dan pulang antar pelabuhan."},
+  {id:"alatk3",  layer:3, order:5, cat:"pihak3", name:"Perlengkapan kerja & alat K3",
+   note:"Jaket, sarung tangan, sepatu, joran, dan umpan dibeli sendiri, padahal alat keselamatan kerja adalah kewajiban pemberi kerja."},
+  {id:"denda",   layer:3, order:6, cat:"gelap", name:"Denda & potongan tanpa penjelasan",
+   note:"Muncul di slip sebagai potongan gelondongan tanpa rincian. PP No. 36/2021 Pasal 58 membatasi potongan upah hanya pada kerugian akibat kesalahan pekerja yang terbukti."},
+  {id:"ditahan", layer:3, order:7, cat:"tahan", name:"Upah ditahan (belum dibayar saat pulang)",
+   note:"Dijanjikan dibayar menyusul setelah ikan terjual. Rata rata tertunda 5 bulan pada simulasi ini, sebagian tidak pernah cair."},
+  {id:"hangus",  layer:3, order:8, cat:"tahan", name:"Upah tidak dibayar sama sekali",
+   note:"Awak yang pulang tanpa pembayaran, biasanya karena dinyatakan masih menanggung utang trip berjalan."}
+];
+
+/* --- LINK ---
+   value: juta rupiah. cat menentukan warna dan pola pita.                   */
+const LINKS = [
+  {source:"janji",   target:"kontrak", value:1260, cat:"base"},
+  {source:"janji",   target:"selisih", value:540,  cat:"gelap"},
+
+  {source:"kontrak", target:"hak",     value:885.3, cat:"base"},
+  {source:"kontrak", target:"pseudo",  value:250,   cat:"ilegal"},
+  {source:"kontrak", target:"tendoan", value:124.7, cat:"ilegal"},
+
+  {source:"hak", target:"terima",  value:283.3, cat:"terima"},
+  {source:"hak", target:"kasbon",  value:168,   cat:"pihak3"},
+  {source:"hak", target:"calo",    value:62,    cat:"pihak3"},
+  {source:"hak", target:"dokumen", value:41,    cat:"pihak3"},
+  {source:"hak", target:"transp",  value:28,    cat:"pihak3"},
+  {source:"hak", target:"alatk3",  value:34,    cat:"pihak3"},
+  {source:"hak", target:"denda",   value:57,    cat:"gelap"},
+  {source:"hak", target:"ditahan", value:133,   cat:"tahan"},
+  {source:"hak", target:"hangus",  value:79,    cat:"tahan"}
+];
+
+/* Konstanta pembanding untuk angka kunci. */
+const JUMLAH_AWAK   = 24;
+const BULAN_TRIP    = 8;
+const UMP_TERENDAH  = 2.169348;  /* juta rupiah per bulan */
+
+/* ============================================================================
+   2. KONFIGURASI TATA LETAK
+   ========================================================================== */
+const CFG = {
+  wDesktop: 1120,   /* lebar kanvas SVG saat layar lebar */
+  wMin:     920,    /* lebar minimum, di bawah ini kanvas digeser horizontal */
+  height:   660,
+  nodeW:    17,     /* tebal batang node */
+  padY:     18,     /* jarak vertikal antar node dalam satu kolom */
+  mTop:     28,
+  mBottom:  26,
+  mLeft:    168,    /* ruang untuk label kolom 0 di sebelah kiri */
+  mRight:   318,    /* ruang untuk label kolom terakhir di sebelah kanan */
+  curve:    0.46    /* kelengkungan pita, 0 lurus, 0.5 sangat melengkung */
+};
+
+/* ============================================================================
+   3. UTILITAS
+   ========================================================================== */
+const SVGNS = "http://www.w3.org/2000/svg";
+const el = (t, a) => { const n = document.createElementNS(SVGNS,t);
+  if(a) for(const k in a) n.setAttribute(k,a[k]); return n; };
+const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+/* Format rupiah gaya Indonesia dari satuan juta. */
+function fmtRp(juta){
+  if(juta >= 1000){
+    return "Rp " + (juta/1000).toLocaleString("id-ID",{minimumFractionDigits:2,maximumFractionDigits:2}) + " miliar";
+  }
+  return "Rp " + juta.toLocaleString("id-ID",{maximumFractionDigits:1}) + " juta";
+}
+function fmtPct(x){ return x.toLocaleString("id-ID",{minimumFractionDigits:1,maximumFractionDigits:1}) + "%"; }
+
+/* ============================================================================
+   4. MESIN TATA LETAK SANKEY (ditulis manual, tanpa pustaka eksternal)
+   ---------------------------------------------------------------------------
+   Alasan tanpa pustaka: file harus bisa dibuka langsung dari berkas lokal
+   tanpa internet dan tanpa backend, sekaligus memberi kontrol penuh atas
+   warna, pola, dan animasi sesuai acuan desain.
+   ========================================================================== */
+const nodeById = {};
+NODES.forEach(n => { nodeById[n.id] = Object.assign({}, n, {in:[], out:[]}); });
+LINKS.forEach((l,i) => {
+  l.i = i;
+  l.s = nodeById[l.source];
+  l.t = nodeById[l.target];
+  l.s.out.push(l);
+  l.t.in.push(l);
+});
+/* Nilai node = maksimum antara total masuk dan total keluar. */
+Object.values(nodeById).forEach(n => {
+  const vin  = n.in.reduce((a,l)=>a+l.value,0);
+  const vout = n.out.reduce((a,l)=>a+l.value,0);
+  n.value = Math.max(vin,vout);
+});
+const NODE_LIST = Object.values(nodeById);
+const LAYERS = [...new Set(NODE_LIST.map(n=>n.layer))].sort((a,b)=>a-b);
+const TOTAL_AWAL = nodeById.janji.value;
+
+function computeLayout(W,H){
+  const innerW = W - CFG.mLeft - CFG.mRight;
+  const innerH = H - CFG.mTop - CFG.mBottom;
+  const stepX  = LAYERS.length > 1 ? (innerW - CFG.nodeW) / (LAYERS.length - 1) : 0;
+
+  /* Skala nilai ke piksel: ambil skala terkecil agar tidak ada kolom meluber. */
+  let k = Infinity;
+  LAYERS.forEach(L => {
+    const ns = NODE_LIST.filter(n=>n.layer===L);
+    const tot = ns.reduce((a,n)=>a+n.value,0);
+    const avail = innerH - (ns.length-1)*CFG.padY;
+    k = Math.min(k, avail/tot);
+  });
+
+  /* Posisi setiap node. Setiap kolom rata atas sehingga alur pokok
+     tetap sejajar di baris teratas dan kebocoran turun ke bawah. */
+  LAYERS.forEach(L => {
+    const ns = NODE_LIST.filter(n=>n.layer===L).sort((a,b)=>a.order-b.order);
+    let y = CFG.mTop;
+    ns.forEach(n => {
+      n.x  = CFG.mLeft + L*stepX;
+      n.y0 = y;
+      n.h  = Math.max(3, n.value*k);
+      n.y1 = y + n.h;
+      y = n.y1 + CFG.padY;
+    });
+  });
+
+  /* Alokasi "slot" vertikal pita pada sisi keluar dan sisi masuk node. */
+  NODE_LIST.forEach(n => {
+    let yo = n.y0;
+    n.out.sort((a,b)=>a.t.order-b.t.order).forEach(l => {
+      l.sy0 = yo; l.sh = Math.max(1.5, l.value*k); yo += l.sh; l.sy1 = yo;
+    });
+    let yi = n.y0;
+    n.in.sort((a,b)=>a.s.order-b.s.order).forEach(l => {
+      l.ty0 = yi; l.th = Math.max(1.5, l.value*k); yi += l.th; l.ty1 = yi;
+    });
+  });
+}
+
+/* Bentuk pita: dua kurva bezier yang menutup jadi satu area. */
+function ribbonPath(l){
+  const x0 = l.s.x + CFG.nodeW, x1 = l.t.x;
+  const cA = x0 + (x1-x0)*CFG.curve, cB = x1 - (x1-x0)*CFG.curve;
+  return `M${x0},${l.sy0} C${cA},${l.sy0} ${cB},${l.ty0} ${x1},${l.ty0}`
+       + ` L${x1},${l.ty1} C${cB},${l.ty1} ${cA},${l.sy1} ${x0},${l.sy1} Z`;
+}
+
+/* ============================================================================
+   5. RENDER
+   ========================================================================== */
+const svg  = document.getElementById("sankey");
+const tip  = document.getElementById("tip");
+let usePattern = true;
+let locked = null;
+
+function catColor(c){ return cssVar(CATS[c].color); }
+
+function buildDefs(){
+  const defs = el("defs");
+  /* Pola tekstur diagonal untuk kategori yang tidak sah, agar diagram
+     tetap terbaca oleh pembaca dengan buta warna atau saat dicetak hitam putih. */
+  PATTERNED.forEach(c => {
+    const p = el("pattern",{id:"pat-"+c, width:7, height:7,
+      patternUnits:"userSpaceOnUse", patternTransform:"rotate(45)"});
+    p.appendChild(el("rect",{width:7,height:7,fill:catColor(c),"fill-opacity":.55}));
+    p.appendChild(el("rect",{width:2.6,height:7,fill:"#04140f","fill-opacity":.55}));
+    defs.appendChild(p);
+  });
+  return defs;
+}
+
+function fillFor(cat){
+  return (usePattern && PATTERNED.includes(cat)) ? `url(#pat-${cat})` : catColor(cat);
+}
+
+function render(){
+  const wrapW = document.getElementById("scrollWrap").clientWidth || CFG.wDesktop;
+  const W = Math.max(CFG.wMin, Math.min(CFG.wDesktop, wrapW));
+  const H = CFG.height;
+
+  computeLayout(W,H);
+  svg.innerHTML = "";
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("width", W);
+  svg.setAttribute("height", H);
+  svg.appendChild(buildDefs());
+
+  /* --- label kolom --- */
+  const heads = ["1. Janji di darat","2. Isi kontrak","3. Setelah pembukuan kapal","4. Ke mana uang pergi"];
+  const gHead = el("g");
+  LAYERS.forEach((L,i) => {
+    const x = CFG.mLeft + L*((W-CFG.mLeft-CFG.mRight-CFG.nodeW)/(LAYERS.length-1));
+    const t = el("text",{x:x, y:14, "font-size":10.5, "letter-spacing":"0.12em",
+      fill:cssVar("--text-3"), "font-weight":600});
+    t.textContent = heads[i].toUpperCase();
+    if(i===0) t.setAttribute("text-anchor","start");
+    gHead.appendChild(t);
+  });
+  svg.appendChild(gHead);
+
+  /* --- pita --- */
+  const gLinks = el("g",{id:"links"});
+  LINKS.forEach(l => {
+    const p = el("path",{
+      d: ribbonPath(l), class:"link-path", fill: fillFor(l.cat),
+      "fill-opacity": l.cat==="base" ? .34 : .5,
+      stroke:"none", "data-i": l.i, "data-s": l.source, "data-t": l.target
+    });
+    p.style.cursor = "pointer";
+    p.addEventListener("mousemove", e => showLinkTip(e,l));
+    p.addEventListener("mouseleave", hideTip);
+    p.addEventListener("click", e => { e.stopPropagation(); showLinkTip(e,l); });
+    gLinks.appendChild(p);
+  });
+  svg.appendChild(gLinks);
+
+  /* --- node + label --- */
+  const gNodes = el("g",{id:"nodes"});
+  NODE_LIST.forEach(n => {
+    const r = el("rect",{
+      x:n.x, y:n.y0, width:CFG.nodeW, height:n.h, rx:3,
+      class:"node-rect", fill: fillFor(n.cat),
+      stroke: catColor(n.cat), "stroke-width": .9, "data-id": n.id
+    });
+    r.style.cursor = "pointer";
+    r.addEventListener("mousemove", e => showNodeTip(e,n));
+    r.addEventListener("mouseleave", hideTip);
+    r.addEventListener("mouseenter", () => { if(!locked) highlight(n.id); });
+    r.addEventListener("click", e => { e.stopPropagation(); locked = (locked===n.id?null:n.id);
+      locked ? highlight(n.id) : clearHighlight(); });
+    gNodes.appendChild(r);
+
+    /* Label: kolom 0 di kiri node, kolom lain di kanan node. */
+    const isFirst = n.layer === 0;
+    const tx = isFirst ? n.x - 12 : n.x + CFG.nodeW + 11;
+    const anchor = isFirst ? "end" : "start";
+    const g = el("g",{class:"node-label","data-id":n.id});
+
+    const maxChars = n.layer === 3 ? 34 : 26;
+    const lines = wrapText(n.name, maxChars);
+    const lh = 14;
+    const startY = n.y0 + n.h/2 - ((lines.length*lh + 15) / 2) + 11;
+
+    lines.forEach((ln,i) => {
+      const t = el("text",{x:tx, y:startY + i*lh, "text-anchor":anchor,
+        "font-size":12.5, "font-weight": (n.cat==="terima"?700:600),
+        fill: n.cat==="terima" ? cssVar("--c-terima") : cssVar("--text"),
+        stroke: cssVar("--bg-2"), "stroke-width":3.5, "paint-order":"stroke",
+        "stroke-linejoin":"round"});
+      t.textContent = ln;
+      g.appendChild(t);
+    });
+    /* Simbol kategori + nilai + persentase */
+    const sub = el("text",{x:tx, y:startY + lines.length*lh + 1, "text-anchor":anchor,
+      "font-size":11.5, fill:cssVar("--text-2"), "font-family":cssVar("--font-num"),
+      stroke:cssVar("--bg-2"),"stroke-width":3.5,"paint-order":"stroke","stroke-linejoin":"round"});
+    sub.textContent = CATS[n.cat].sym + "  " + fmtRp(n.value) + "  (" + fmtPct(n.value/TOTAL_AWAL*100) + ")";
+    g.appendChild(sub);
+    gNodes.appendChild(g);
+  });
+  svg.appendChild(gNodes);
+
+  animateIn();
+}
+
+/* Pemenggal teks sederhana berbasis jumlah karakter. */
+function wrapText(str, max){
+  const words = str.split(" ");
+  const out = []; let cur = "";
+  words.forEach(w => {
+    if((cur + " " + w).trim().length <= max){ cur = (cur + " " + w).trim(); }
+    else { if(cur) out.push(cur); cur = w; }
+  });
+  if(cur) out.push(cur);
+  return out;
+}
+
+/* ============================================================================
+   6. ANIMASI MASUK (bertahap per kolom, ringan dan tidak mengganggu)
+   ========================================================================== */
+function animateIn(){
+  const paths  = svg.querySelectorAll(".link-path");
+  const rects  = svg.querySelectorAll(".node-rect");
+  const labels = svg.querySelectorAll(".node-label");
+  paths.forEach(p => p.classList.remove("in"));
+  rects.forEach(r => r.classList.remove("in"));
+  labels.forEach(l => l.classList.remove("in"));
+
+  rects.forEach(r => {
+    const n = nodeById[r.getAttribute("data-id")];
+    setTimeout(()=>r.classList.add("in"), 90 + n.layer*230);
+  });
+  labels.forEach(l => {
+    const n = nodeById[l.getAttribute("data-id")];
+    setTimeout(()=>l.classList.add("in"), 170 + n.layer*230);
+  });
+  paths.forEach(p => {
+    const l = LINKS[+p.getAttribute("data-i")];
+    setTimeout(()=>p.classList.add("in"), 200 + l.s.layer*230);
+  });
+}
+
+/* ============================================================================
+   7. SOROTAN (highlight)
+   ========================================================================== */
+function highlight(id){
+  const rel = new Set([id]);
+  LINKS.forEach(l => { if(l.source===id) rel.add(l.target); if(l.target===id) rel.add(l.source); });
+  svg.querySelectorAll(".link-path").forEach(p => {
+    const on = p.getAttribute("data-s")===id || p.getAttribute("data-t")===id;
+    p.classList.toggle("dim", !on);
+  });
+  svg.querySelectorAll(".node-rect").forEach(r => {
+    r.classList.toggle("dim-node", !rel.has(r.getAttribute("data-id")));
+  });
+  svg.querySelectorAll(".node-label").forEach(g => {
+    g.classList.toggle("dim-node", !rel.has(g.getAttribute("data-id")));
+  });
+}
+function clearHighlight(){
+  svg.querySelectorAll(".link-path").forEach(p => p.classList.remove("dim"));
+  svg.querySelectorAll(".node-rect,.node-label").forEach(n => n.classList.remove("dim-node"));
+}
+svg.addEventListener("mouseleave", () => { if(!locked) clearHighlight(); });
+
+/* ============================================================================
+   8. TOOLTIP
+   ========================================================================== */
+function place(e){
+  const r = tip.getBoundingClientRect();
+  let x = e.clientX + 16, y = e.clientY + 16;
+  if(x + r.width  > innerWidth  - 8) x = e.clientX - r.width  - 16;
+  if(y + r.height > innerHeight - 8) y = e.clientY - r.height - 16;
+  tip.style.left = Math.max(8,x) + "px";
+  tip.style.top  = Math.max(8,y) + "px";
+}
+function showNodeTip(e,n){
+  const perOrang = n.value / JUMLAH_AWAK;
+  tip.innerHTML =
+    `<span class="t-chip" style="background:${catColor(n.cat)}">${CATS[n.cat].sym} ${CATS[n.cat].label}</span>
+     <div class="t-title">${n.name}</div>
+     <div class="t-row"><span>Nilai kolektif</span><b>${fmtRp(n.value)}</b></div>
+     <div class="t-row"><span>Porsi dari janji awal</span><b>${fmtPct(n.value/TOTAL_AWAL*100)}</b></div>
+     <div class="t-row"><span>Per awak (24 orang)</span><b>${fmtRp(perOrang)}</b></div>
+     <div class="t-row"><span>Per awak per bulan</span><b>${fmtRp(perOrang/BULAN_TRIP)}</b></div>
+     <div class="t-note">${n.note}</div>`;
+  tip.classList.add("show"); tip.setAttribute("aria-hidden","false"); place(e);
+}
+function showLinkTip(e,l){
+  const share = l.value / l.s.value * 100;
+  tip.innerHTML =
+    `<span class="t-chip" style="background:${catColor(l.cat)}">${CATS[l.cat].sym} ${CATS[l.cat].label}</span>
+     <div class="t-title">${l.s.name} &rarr; ${l.t.name}</div>
+     <div class="t-row"><span>Nilai pindah</span><b>${fmtRp(l.value)}</b></div>
+     <div class="t-row"><span>Porsi dari tahap sebelumnya</span><b>${fmtPct(share)}</b></div>
+     <div class="t-row"><span>Porsi dari janji awal</span><b>${fmtPct(l.value/TOTAL_AWAL*100)}</b></div>
+     <div class="t-note">${l.t.note}</div>`;
+  tip.classList.add("show"); tip.setAttribute("aria-hidden","false"); place(e);
+}
+function hideTip(){ tip.classList.remove("show"); tip.setAttribute("aria-hidden","true"); }
+document.addEventListener("click", () => { locked = null; clearHighlight(); hideTip(); });
+
+/* ============================================================================
+   9. LEGENDA (klik untuk menyorot satu kategori)
+   ========================================================================== */
+function buildLegend(){
+  const box = document.getElementById("legend");
+  box.innerHTML = "";
+  Object.keys(CATS).forEach(c => {
+    const item = document.createElement("div");
+    item.className = "legend-item"; item.setAttribute("role","button"); item.tabIndex = 0;
+    const sw = document.createElement("span");
+    sw.className = "legend-swatch";
+    sw.style.background = catColor(c);
+    if(PATTERNED.includes(c)){
+      sw.style.backgroundImage =
+        "repeating-linear-gradient(45deg, rgba(4,20,15,.6) 0 3px, transparent 3px 7px)";
+    }
+    item.appendChild(sw);
+    const lab = document.createElement("span");
+    lab.innerHTML = `<b>${CATS[c].sym}</b> ${CATS[c].label}`;
+    item.appendChild(lab);
+    const act = () => {
+      const ids = NODE_LIST.filter(n=>n.cat===c).map(n=>n.id);
+      svg.querySelectorAll(".link-path").forEach(p =>
+        p.classList.toggle("dim", LINKS[+p.getAttribute("data-i")].cat !== c));
+      svg.querySelectorAll(".node-rect,.node-label").forEach(n =>
+        n.classList.toggle("dim-node", !ids.includes(n.getAttribute("data-id"))));
+      locked = "cat:"+c;
+      document.querySelectorAll(".legend-item").forEach(x=>x.classList.add("off"));
+      item.classList.remove("off");
+    };
+    item.addEventListener("click", e => { e.stopPropagation(); act(); });
+    item.addEventListener("keydown", e => { if(e.key==="Enter"||e.key===" "){ e.preventDefault(); act(); }});
+    box.appendChild(item);
+  });
+}
+
+/* ============================================================================
+   10. TAMPILAN DAFTAR (alternatif diagram)
+   ========================================================================== */
+function buildList(){
+  const wrap = document.getElementById("listView");
+  const rows = NODE_LIST
+    .filter(n => n.id !== "janji" && n.id !== "kontrak" && n.id !== "hak")
+    .sort((a,b) => b.value - a.value);
+  const maxV = Math.max(...rows.map(r=>r.value));
+  let html = `<table><thead><tr>
+      <th>Ke mana nilai upah pergi</th><th>Kategori</th>
+      <th style="text-align:right">Nilai kolektif</th>
+      <th style="text-align:right">% dari janji</th>
+      <th style="width:26%">Besar relatif</th></tr></thead><tbody>`;
+  rows.forEach(r => {
+    const w = (r.value/maxV*100).toFixed(1);
+    const bg = PATTERNED.includes(r.cat)
+      ? `${catColor(r.cat)}; background-image:repeating-linear-gradient(45deg,rgba(4,20,15,.6) 0 3px,transparent 3px 7px)`
+      : catColor(r.cat);
+    html += `<tr>
+      <td><span class="sym">${CATS[r.cat].sym}</span>${r.name}</td>
+      <td style="color:var(--text-2);font-size:12.5px">${CATS[r.cat].label}</td>
+      <td class="num">${fmtRp(r.value)}</td>
+      <td class="num">${fmtPct(r.value/TOTAL_AWAL*100)}</td>
+      <td><div class="bar" style="width:${w}%;background:${bg}"></div></td>
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+  wrap.innerHTML = html;
+}
+
+/* ============================================================================
+   11. ANGKA KUNCI
+   ========================================================================== */
+function buildKpis(){
+  const terima = nodeById.terima.value;
+  const perOrangBulan = terima / JUMLAH_AWAK / BULAN_TRIP;
+  const hilang = TOTAL_AWAL - terima;
+  const data = [
+    {lab:"Dijanjikan perekrut", val:fmtRp(TOTAL_AWAL), sub:"Total untuk 24 awak, trip 8 bulan", cls:""},
+    {lab:"Benar benar diterima", val:fmtRp(terima), sub:fmtPct(terima/TOTAL_AWAL*100)+" dari yang dijanjikan", cls:"accent"},
+    {lab:"Menguap di jalan", val:fmtRp(hilang), sub:fmtPct(hilang/TOTAL_AWAL*100)+" berpindah ke pihak lain", cls:"loss"},
+    {lab:"Upah per orang per bulan", val:"Rp "+(perOrangBulan*1e6).toLocaleString("id-ID",{maximumFractionDigits:0}),
+     sub:"Selisih dengan UMP terendah 2025: Rp "+((UMP_TERENDAH-perOrangBulan)*1e6).toLocaleString("id-ID",{maximumFractionDigits:0}), cls:"loss"}
+  ];
+  document.getElementById("kpis").innerHTML = data.map(d =>
+    `<div class="kpi ${d.cls}"><div class="k-lab">${d.lab}</div>
+     <div class="k-val">${d.val}</div><div class="k-sub">${d.sub}</div></div>`).join("");
+}
+
+/* ============================================================================
+   12. KONTROL
+   ========================================================================== */
+const btnDiagram = document.getElementById("btnDiagram");
+const btnList    = document.getElementById("btnList");
+const btnPattern = document.getElementById("btnPattern");
+
+function setView(mode){
+  const isD = mode === "diagram";
+  document.getElementById("scrollWrap").style.display = isD ? "" : "none";
+  document.querySelector(".scroll-hint").style.visibility = isD ? "" : "hidden";
+  document.getElementById("listView").style.display = isD ? "none" : "block";
+  btnDiagram.setAttribute("aria-pressed", String(isD));
+  btnList.setAttribute("aria-pressed", String(!isD));
+  if(isD) render();
+}
+btnDiagram.addEventListener("click", e => { e.stopPropagation(); setView("diagram"); });
+btnList.addEventListener("click",    e => { e.stopPropagation(); setView("list"); });
+btnPattern.addEventListener("click", e => {
+  e.stopPropagation();
+  usePattern = !usePattern;
+  btnPattern.setAttribute("aria-pressed", String(usePattern));
+  render(); buildList();
+});
+document.getElementById("btnReplay").addEventListener("click", e => { e.stopPropagation(); animateIn(); });
+document.getElementById("btnReset").addEventListener("click", e => {
+  e.stopPropagation(); locked = null; clearHighlight(); hideTip();
+  document.querySelectorAll(".legend-item").forEach(x=>x.classList.remove("off"));
+});
+
+/* ============================================================================
+   13. INISIALISASI
+   ========================================================================== */
+let rt;
+window.addEventListener("resize", () => {
+  clearTimeout(rt);
+  rt = setTimeout(() => { if(btnDiagram.getAttribute("aria-pressed")==="true") render(); }, 180);
+});
+buildLegend(); buildList(); buildKpis(); render();
+</script>
+</body>
+</html>
